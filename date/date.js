@@ -15,7 +15,30 @@
  * - 增加中文的支持
  * - 简单的本地化，对w（星期x）的支持
  */
-KISSY.add('date-format',function(S){
+KISSY.add('date',function(S){
+
+var dateParse = function(data){
+
+	var date = null;
+
+	//Convert to date
+	if(!(date instanceof Date)) {
+		date = new Date(data);
+	}
+	else {
+		return date;
+	}
+
+	// Validate
+	if(date instanceof Date && (date != "Invalid Date") && !isNaN(date)) {
+		return date;
+	}
+	else {
+		return null;
+	}
+
+};
+
 
 var dateFormat = function () {
 	var	token = /w{1}|d{1,4}|m{1,4}|yy(?:yy)?|([HhMsTt])\1?|[LloSZ]|"[^"]*"|'[^']*'/g,
@@ -135,10 +158,23 @@ dateFormat.i18n = {
 	]
 };
 
-// For convenience...
-Date.prototype.format = function (mask, utc) {
-	return dateFormat(this, mask, utc);
+S.namespace('S.Date');
+
+S.Date.format = function(date,mask,utc){
+	return dateFormat(date,mask,utc);
+}; 
+
+S.Date.parse = function(date){
+	return dateParse(date);
 };
 
 
 });
+
+/**
+ * 2010-09-14 拔赤
+ *		- 仅支持S.Date.format和S.Date.parse，format仅对常用格式进行支持（不超过10个），也可以自定义
+ *		- kissy-lang中是否应当增加Lang.type(o)?或者isDate(d)?
+ *		- 模块名称取为datetype还是直接用date? 我更倾向于用date
+ *		- YUI的datetype花了大量精力对全球语种进行hack，似乎KISSY是不必要的，KISSY只对中文做hack即可
+ */
