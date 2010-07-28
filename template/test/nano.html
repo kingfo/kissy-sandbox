@@ -1,0 +1,52 @@
+<!doctype html>
+<html>
+<head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8">
+    <title>Nano Template</title>
+</head>
+<body>
+    <div id="nano"></div>
+    <script src='http://a.tbcdn.cn/s/kissy/1.0.8/ks-core-min.js?t=20100603b.js'></script>
+    <script>
+        KISSY.add('Nano', function(S, undefined){
+            S.Nano = function(templ){
+                return {
+                    render: function(data){
+                        return templ.replace(/\{([\w\.]*)\}/g, function(str, key){
+                            var keys = key.split('.'),
+                                value = data[keys.shift()];
+                            S.each(keys, function(key){
+                                value = value[key];
+                            });
+                            return (value === null || value === undefined) ? "" : value;
+                        });
+                    }
+                };
+            };
+        });
+
+        var testData = {
+            "Name": "Wenhe",
+            "Title": "F2E",
+            "GoodAt": {
+                "Skill": "css, js",
+                "Play": "O2Mania, KOF"
+            }
+        };
+
+        var testTempl = [
+            '<dl>',
+                '<dt>Name:</dt>',
+                '<dd>{Name}</dd>',
+                '<dt>Title:</dt>',
+                '<dd>{Title}</dd>',
+                '<dt>GoodAt</dt>',
+                '<dd>{GoodAt.Skill}</dd>',
+                '<dd>{GoodAt.Play}</dd>',
+            '</dl>'
+        ].join('');
+
+        KISSY.get("#nano").innerHTML = KISSY.Nano(testTempl).render(testData);
+    </script>
+</body>
+</html>
