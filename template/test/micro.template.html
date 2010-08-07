@@ -35,7 +35,9 @@
                     }
                 ]
             };
-            S.get('#MicroTemplate').innerHTML = KISSY.MicroTemplate(data);
+            S.Config.debug = true;
+            S.log(KISSY.MicroTemplate(S.get('.KISSY_Micro_Template').innerHTML).render(), 'info');
+            S.get('#MicroTemplate').innerHTML = KISSY.MicroTemplate(S.get('.KISSY_Micro_Template').innerHTML).render(data);
         })(KISSY);
     </script>
 </body>

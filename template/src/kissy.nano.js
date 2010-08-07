@@ -24,6 +24,7 @@
  * THE SOFTWARE.
  */
 KISSY.add('Nano', function(S, undefined){
+
     /**
      * 模板引擎
      * 修改自 Nano Templates (Tomasz Mazur, Jacek Becela)
