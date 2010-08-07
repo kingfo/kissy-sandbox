@@ -1,5 +1,5 @@
 /**
- * @fileoverview 短小精悍的模板引擎
+ * @fileoverview Nano模板引擎，kissy版
  * @author yyfrankyy@gmail.com (文河)
  *
  * @license
