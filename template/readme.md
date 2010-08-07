@@ -15,3 +15,5 @@ Reference
  * [nano](http://github.com/trix/nano/blob/master/jquery.nano.js)
  * [jTemplate](http://plugins.jquery.com/project/jTemplates)
  * [{{ mustache }}](http://mustache.github.com/)
+ * [EJS](http://www.embeddedjs.com/)
+ * [trimpath](http://code.google.com/p/trimpath/)

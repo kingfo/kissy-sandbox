@@ -7,23 +7,8 @@
 <body>
     <div id="nano"></div>
     <script src='http://a.tbcdn.cn/s/kissy/1.0.8/ks-core-min.js?t=20100603b.js'></script>
+    <script src='../src/kissy.nano.js'></script>
     <script>
-        KISSY.add('Nano', function(S, undefined){
-            S.Nano = function(templ){
-                return {
-                    render: function(data){
-                        return templ.replace(/\{([\w\.]*)\}/g, function(str, key){
-                            var keys = key.split('.'),
-                                value = data[keys.shift()];
-                            S.each(keys, function(key){
-                                value = value[key];
-                            });
-                            return (value === null || value === undefined) ? "" : value;
-                        });
-                    }
-                };
-            };
-        });
 
         var testData = {
             "Name": "Wenhe",
@@ -40,8 +25,12 @@
                 '<dd>{Name}</dd>',
                 '<dt>Title:</dt>',
                 '<dd>{Title}</dd>',
+                '<dt>Empty</dt>',
+                '<dd>!{Empty}</dd>',
+                '<dt>Nothing</dt>',
+                '<dd>{Nothing}</dd>',
                 '<dt>GoodAt</dt>',
-                '<dd>{GoodAt.Skill}</dd>',
+                '<dd>{GoodAt}</dd>',
                 '<dd>{GoodAt.Play}</dd>',
             '</dl>'
         ].join('');

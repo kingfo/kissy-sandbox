@@ -6,5 +6,5 @@
 *.bak
 .DS_Store
 Thumb.db
-.swp
-.swo
+*.swp
+*.swo
