@@ -7,7 +7,12 @@
 <body>
     <div id="MicroTemplate"></div>
     <script type="text/html" class="KISSY_Micro_Template">
-        <em><%=version%></em>
+        <dl>
+            <dt>version</dt>
+            <dd><%=version%></dd>
+            <dt>createdate</dt>
+            <dd><%=createdate%></dd>
+        </dl>
         <ul>
             <% for (var i=0; i < users.length; i++) { %>
                 <li><a href="<%=users[i].url%>"><%=users[i].name%></a></li>
@@ -20,6 +25,7 @@
         (function(S, undefined){
             var data = {
                 version: '1.1.1',
+                createdate: '2010-08-07',
                 users: [
                     {
                         name: 'frank',
