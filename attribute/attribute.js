@@ -1,6 +1,6 @@
 /**
  * @module  Attribute for Kissy
- * @author  yiminghe@gmail.com(³ĞÓñ)
+ * @author  yiminghe@gmail.com(æ‰¿ç‰)
  */
 KISSY.add('attribute-base', function (S, undefined) {
     var EventTarget = S.EventTarget,
@@ -9,8 +9,7 @@ KISSY.add('attribute-base', function (S, undefined) {
         AFTER = "after";
 
     function capitalFirst(s) {
-        var f = s.charAt(0);
-        return f.toUpperCase() + s.substring(1);
+        return s.charAt(0).toUpperCase() + s.substring(1);
     }
 
     /**
@@ -51,6 +50,13 @@ KISSY.add('attribute-base', function (S, undefined) {
          */
         addAttribute: function (attr, attrConfig) {
             this._state[attr] = S.clone(attrConfig);
+        },
+        /**
+         * whether attribute exists
+         * @param attr
+         */
+        hasAttribute:function(attr) {
+            return !!this._state[attr];
         },
         /**
          *set object's attribute
@@ -130,8 +136,8 @@ KISSY.add('attribute-base', function (S, undefined) {
                 self.set(attr, self._getDefaultValue(attr));
                 return;
             }
-            for (var attr in self._state) {
-                if (self._state.hasOwnProperty(attr)) {
+            for (attr in self._state) {
+                if (self.hasAttribute(attr)) {
                     self.reset(attr);
                 }
             }
@@ -153,11 +159,15 @@ KISSY.add('attribute-base', function (S, undefined) {
         //init attr using constructor chain's attr meta info
         //note:prevent conflict attribute name in constructor chain
         _initAttr: function () {
-            var self = this,c = self.constructor;
+            var self = this,c = self.constructor,attr;
             while (c) {
                 if (c.ATTRS) {
-                    for (var attr in c.ATTRS) {
-                        if (c.ATTRS.hasOwnProperty(attr)) self.addAttribute(attr, c.ATTRS[attr]);
+                    for (attr in c.ATTRS) {
+                        //subclass attribute config take priviledge
+                        if (c.ATTRS.hasOwnProperty(attr)
+                            &&
+                            !self.hasAttribute(attr))
+                            self.addAttribute(attr, c.ATTRS[attr]);
                     }
                 }
                 c = c.superclass ? c.superclass.constructor : null;
@@ -165,8 +175,10 @@ KISSY.add('attribute-base', function (S, undefined) {
         },
         //initial attribute's value
         _initial: function (cfg) {
-            for (var attr in cfg) {
-                if (cfg.hasOwnProperty(attr)) this._set(attr, cfg[attr]);
+            var self = this,attr;
+            for (attr in cfg) {
+                if (cfg.hasOwnProperty(attr))
+                    self._set(attr, cfg[attr]);
             }
         }
     });
@@ -177,9 +189,9 @@ KISSY.add('attribute-base', function (S, undefined) {
  *
  *  2010.06
  *
- *     - ¼ò»¯µÄyui3 attributeÄ£Äâ  £¬ÊôĞÔ¿ÉÉèÖÃ£º
- *                    value:Ä¬ÈÏÖµ
- *                    valueFn:Ä¬ÈÏÖµÎªº¯Êıµ÷ÓÃ½á¹û
- *                    setter:setµ÷ÓÃ£¬·µ»Øfalse×èÖ¹£¬·µ»ØundefinedÉèÖÃÓÃ»§Öµ£¬·ñÔòÉèÖÃ·µ»ØÖµ
- *                    gettter:getµ÷ÓÃ
+ *     - ç®€åŒ–çš„yui3 attributeæ¨¡æ‹Ÿ  ï¼Œå±æ€§å¯è®¾ç½®ï¼š
+ *                    value:é»˜è®¤å€¼
+ *                    valueFn:é»˜è®¤å€¼ä¸ºå‡½æ•°è°ƒç”¨ç»“æœ
+ *                    setter:setè°ƒç”¨ï¼Œè¿”å›falseé˜»æ­¢ï¼Œè¿”å›undefinedè®¾ç½®ç”¨æˆ·å€¼ï¼Œå¦åˆ™è®¾ç½®è¿”å›å€¼
+ *                    gettter:getè°ƒç”¨
  */
