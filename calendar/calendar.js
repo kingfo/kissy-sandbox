@@ -1,5 +1,11 @@
 
 
+/*
+	yyyy-mm-dd
+	YY-mm-dd
+	YY年mm月dd日
+*/
+
 KISSY.add('calendar',function(S){
 
 	S.namespace('S.Calendar');
