@@ -93,8 +93,8 @@ S.use('calendar',function(S){
 	return;
 	*/
 	//静态日历,单击回调
-	c = new S.Calendar('J_calendar').on('select',function(d){
-		alert(d);
+	c = new S.Calendar('J_calendar').on('select',function(e){
+		alert(e.date);
 	});
 
 	//静态双月日历,默认选中某日
@@ -112,9 +112,8 @@ S.use('calendar',function(S){
 	new S.Calendar('J_range',{
 		multi_page:2,
 		range_select:true
-	}).on('rangeselect',function(o){
-		//这里的o可以理解成一个事件faced，也可以理解是参数
-		alert(o);
+	}).on('rangeselect',function(e){
+		alert(e.date);
 	});
 
 	//选择范围,指定默认范围
@@ -128,14 +127,17 @@ S.use('calendar',function(S){
 	});
 
 	//月份切换事件
-	new S.Calendar('J_all_events').on('switch',function(d){
-		alert('切换事件,月份切换到'+d);
+	new S.Calendar('J_all_events').on('switch',function(e){
+		alert('切换事件,月份切换到'+(e.date.getMonth()+1));
 	});
 
 	//Popup日历,默认点击触发
 	new S.Calendar('J_popup',{
 		popup:true	,
 		action:['click']
+	}).on('select',function(e){
+		S.one('#J_popup').val(e.date.getMonth());
+		
 	});
 
 	//Popup日历,单选关闭
@@ -143,8 +145,8 @@ S.use('calendar',function(S){
 		popup:true,
 		closeable:true,
 		action:['focus']
-	}).on('select',function(d){
-		alert(d);	
+	}).on('select',function(e){
+		alert(e.date);	
 	});
 
 	//日历可操作范围
@@ -156,8 +158,8 @@ S.use('calendar',function(S){
 	//日历可选择time
 	c = new S.Calendar('J_with_time',{
 		withtime:true
-	}).on('timeselect',function(d){
-		alert(d);	
+	}).on('timeselect',function(e){
+		alert(e.date);	
 	});
 	/*
 	*/

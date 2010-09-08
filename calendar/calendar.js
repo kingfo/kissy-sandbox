@@ -27,21 +27,12 @@ KISSY.add('calendar',function(S){
 				//that.con = Y.Node.create('<div id="'+that.C_Id+'"></div>');
 				that.con = S.Node('<div id="'+that.C_Id+'"></div>');
 				S.one('body').append(that.con);
-				//Y.one('body').appendChild(that.con);
-				/*
-				var _x = trigger.getXY()[0];
-				var _y = trigger.getXY()[1]+trigger.get('region').height;
-				that.con.setStyle('left',_x.toString()+'px');
-				that.con.setStyle('top',_y.toString()+'px');
-				*/
 				that.con.css({
 					'top':'0px',
 					'position':'absolute',
 					'background':'white',
 					'visibility':'hidden'
 				});
-
-
 			}
 			that.buildEventCenter();
 			that.render();
@@ -140,6 +131,8 @@ KISSY.add('calendar',function(S){
 				e.target = S.Node(e.target);
 				//点击到日历上
 				if(e.target.attr('id') == that.C_Id)return;
+				if((e.target.hasClass('next')||e.target.hasClass('prev'))
+					&& e.target[0].tagName == 'A')	return;
 				//点击在trigger上
 				if(e.target.attr('id') == that.id)return;
 				//TODO node如何向上查找节点
@@ -315,13 +308,6 @@ KISSY.add('calendar',function(S){
 		 * 处理日期
 		 */
 		handleDate:function(){
-			/*
-			that.month
-			that.year
-			that.selected
-			that.mindate
-			that.maxdate
-			*/
 			var that = this;
 			var date = that.date;
 			that.weekday= date.getDay() + 1;//星期几 //指定日期是星期几
@@ -576,7 +562,9 @@ KISSY.add('calendar',function(S){
 					d.setHours(that.get('h'));
 					d.setMinutes(that.get('m'));
 					d.setSeconds(that.get('s'));
-					that.fathor.EventCenter.fire('timeselect',d);
+					that.fathor.EventCenter.fire('timeselect',{
+						date:d	
+					});
 					if(that.fathor.popup && that.fathor.closeable){
 						that.fathor.hide();
 					}
@@ -721,6 +709,49 @@ KISSY.add('calendar',function(S){
 
 
 			//方法
+			//常用的数据格式的验证
+			this.Verify = function(){
+
+				var isDay = function(n){
+					if(typeof n != 'number'){
+						return false;
+					}
+					if(n < 1 || n > 31){
+						return false;
+					}
+					return true;
+
+				};
+				var isYear = function(n){
+					if(typeof n != 'number'){
+						return false;
+					}
+					if(n < 100 || n > 10000){
+						return false;
+					}
+					return true;
+				};
+				var isMonth = function(n){
+					if(typeof n != 'number'){
+						return false;
+					}
+					if(n < 1 || n > 12){
+						return false;
+					}
+					return true;
+
+				};
+
+				return {
+					isDay:isDay,
+					isYear:isYear,
+					isMonth:isMonth
+
+				};
+
+
+			};
+
 			/**
 			 * 渲染子日历的UI
 			 */
@@ -783,7 +814,9 @@ KISSY.add('calendar',function(S){
 					//that.callback(d);
 					//datetime的date
 					cc.fathor.dt_date = d;
-					cc.fathor.EventCenter.fire('select',d);
+					cc.fathor.EventCenter.fire('select',{
+						date:d
+					});
 					if(cc.fathor.popup && cc.fathor.closeable){
 						cc.fathor.hide();
 					}
@@ -796,13 +829,18 @@ KISSY.add('calendar',function(S){
 				cc.EV[1] = con.one('a.prev').on('click',function(e){
 					e.preventDefault();
 					cc.fathor.monthMinus().render();
-					cc.fathor.EventCenter.fire('switch',new Date(cc.fathor.year+'/'+(cc.fathor.month+1)+'/01'));
+					cc.fathor.EventCenter.fire('switch',{
+						date:new Date(cc.fathor.year+'/'+(cc.fathor.month+1)+'/01')
+					});
+
 				});
 				//向后
 				cc.EV[2] = con.one('a.next').on('click',function(e){
 					e.preventDefault();
 					cc.fathor.monthAdd().render();
-					cc.fathor.EventCenter.fire('switch',new Date(cc.fathor.year+'/'+(cc.fathor.month+1)+'/01'));
+					cc.fathor.EventCenter.fire('switch',{
+						date:new Date(cc.fathor.year+'/'+(cc.fathor.month+1)+'/01')
+					});
 				});
 				if(cc.fathor.navigator){
 					cc.EV[3] = con.one('a.title').on('click',function(e){
@@ -834,11 +872,15 @@ KISSY.add('calendar',function(S){
 							if(e.keyCode == 13){//enter
 								var _month = con.one('.setime').one('select').val();
 								var _year  = con.one('.setime').one('input').val();
+								con.one('.setime').addClass('hidden');
+								if(!cc.Verify().isYear(_year))return;
+								if(!cc.Verify().isMonth(_month))return;
 								cc.fathor.render({
 									date:new Date(_year+'/'+_month+'/01')
 								})
-								cc.fathor.EventCenter.fire('switch',new Date(_year+'/'+_month+'/01'));
-								con.one('.setime').addClass('hidden');
+								cc.fathor.EventCenter.fire('switch',{
+									date:new Date(_year+'/'+_month+'/01')
+								});
 							}
 						});
 					});
@@ -848,11 +890,16 @@ KISSY.add('calendar',function(S){
 						if(e.target.hasClass('ok')){
 							var _month = con.one('.setime').one('select').val();
 							var _year  = con.one('.setime').one('input').val();
+							con.one('.setime').addClass('hidden');
+							//TODO
+							if(!cc.Verify().isYear(_year))return;
+							if(!cc.Verify().isMonth(_month))return;
 							cc.fathor.render({
 								date:new Date(_year+'/'+_month+'/01')
 							})
-							cc.fathor.EventCenter.fire('switch',new Date(_year+'/'+_month+'/01'));
-							con.one('.setime').addClass('hidden');
+							cc.fathor.EventCenter.fire('switch',{
+								date:new Date(_year+'/'+_month+'/01')
+							});
 						}else if(e.target.hasClass('cancel')){
 							con.one('.setime').addClass('hidden');
 						}
