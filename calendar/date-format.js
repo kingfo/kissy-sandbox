@@ -10,6 +10,10 @@
  * Returns a formatted version of the given date.
  * The date defaults to the current date/time.
  * The mask defaults to dateFormat.masks.default.
+ *
+ * Last modified by jayli 拔赤 2010-09-09
+ * - 增加中文的支持
+ * - 简单的本地化，对w（星期x）的支持
  */
 KISSY.add('date-format',function(S){
 
