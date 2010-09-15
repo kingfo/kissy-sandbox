@@ -8,7 +8,7 @@ package com.xintend.events {
 	public class UploaderEvent extends Event {
 		
 		public static const LIST_COMPLETE: String = "listComplete";
-		public static const CONTENT_READY: String = "contentReady";
+		//public static const CONTENT_READY: String = "contentReady";
 		
 		public var files: Array;
 		

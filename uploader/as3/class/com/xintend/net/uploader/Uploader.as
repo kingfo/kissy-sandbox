@@ -29,7 +29,7 @@ package com.xintend.net.uploader {
 			
 			FILE_ID = new Date().getTime();
 			
-			dispatchEvent(new UploaderEvent(UploaderEvent.CONTENT_READY));
+			//dispatchEvent(new UploaderEvent(UploaderEvent.CONTENT_READY));
 		}
 		/**
 		 * 显示一个文件浏览对话框，让用户选择要上载的文件。 该对话框对于用户的操作系统来说是本机的。
@@ -40,7 +40,7 @@ package com.xintend.net.uploader {
 		public function browse(mulit: Boolean = true, fileFilters: Array = null): Boolean {
 			var filters: Array;
 			var i: int;
-			var n: int = fileFilters.length;
+			var n: int = (fileFilters||[]).length;
 			var fileter: Object;
 			if (isLocked) return false;
 			
@@ -213,9 +213,9 @@ package com.xintend.net.uploader {
 			var key: String;
 			var fileReference: FileReference;
 			if (file is FileReferenceList) {
-				a.push(file);
-			}else if(file is FileReference) {
 				a.concat(file.fileList);
+			}else if(file is FileReference) {
+				a.push(file);
 			}
 			n = a.length;
 			for (i = 0; i < n; i++ ) {

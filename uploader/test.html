@@ -5,7 +5,7 @@
 		<title></title>
 	</head>
 	<body>
-		<h2>SWFStore test</h2>
+		<h2>Uploader test</h2>
 		<script src="../../kissy/build/test/test.js"></script>
 		<script>KISSY.Test.Config.times = 1;</script>
 		
@@ -19,186 +19,130 @@
 		
 		<div id="myFlashContent">
 			 <a href="http://www.adobe.com/go/getflashplayer"> 
-	         <img src="get_flash_player.gif" alt="Get Adobe Flash player" /> 
+	         <img src="../../kissy-ajbridge/assets/get_flash_player.gif" alt="Get Adobe Flash player" /> 
 	         </a> 
 		</div>
 		<br/>
-		<button type="button" onclick="length();">length</button>
-		<button type="button" onclick="setItem();">setItem</button>
-		<button type="button" onclick="setItemByCustom();">setItemByCustom</button>
-		<button type="button" onclick="getItem();">getItem</button>
-		<button type="button" onclick="getItemByCustom();">getItemByCustom</button>
-		<button type="button" onclick="key();">key</button>
-		<button type="button" onclick="keyByCustom();">keyByCustom</button>
-		<button type="button" onclick="removeItem();">removeItem</button>
-		<button type="button" onclick="removeItemByCustom();">removeItemByCustom</button>
-		<button type="button" onclick="cls();">clear</button>
-		<button type="button" onclick="getModificationDate();">getModificationDate</button>
-		<button type="button" onclick="hasAdequateDimensions();">hasAdequateDimensions</button>
-		<button type="button" onclick="displaySettings();">displaySettings</button>
-		<button type="button" onclick="getUseCompression();">getUseCompression</button>
-		<button type="button" onclick="getUseCompression();">getUseCompression</button>
-		<button type="button" onclick="getSize();">getSize</button>
-		<button type="button" onclick="setMinDiskSpace();">setMinDiskSpace</button>
+		<button type="button" onclick="browse();">browse</button>
+		<button type="button" onclick="upload();">upload</button>
+		<button type="button" onclick="cancel();">cancel</button>
+		<button type="button" onclick="getFile();">getFile</button>
+		<button type="button" onclick="removeFile();">removeFile</button>
+		<button type="button" onclick="lock();">lock</button>
+		<button type="button" onclick="unlock();">unlock</button>
 		
 		
 		<script>
 			var S = KISSY,
 				F = S.Flash,
 				A = AJBridge,
-				t,
-				SWFStore = A.Store,
+				Uploader = A.Uploader,
 				config ={
-					src:"store.swf",
+					src:"uploader.swf",
 					params:{
-						bgcolor:"#CCCCCC"
-					}
+						bgcolor:"#FFCCCC",
+						scale:"showall"
+					},
+					hand:true,
+					btn:true
 				},
 				id="myFlashContent",
-				store = new SWFStore(id,config),
-				KEY = "sample2",
-				VAL = "hello world~",
+				uploader = new Uploader(id,config),
 				cK,cV;
 			
 				function test_create(test){
-					store.on("init",function(ev){
+					// 1.添加常规 AJBridge 监听
+					uploader.on("init",function(ev){
 						test.echo("<p>"+'id: ' + ev.id,',type: ' + ev.type,"</p>");
 					});
-					store.on("addCallback",function(ev){
+					uploader.on("addCallback",function(ev){
 						test.echo("<p>"+'id: ' + ev.id,',type: ' + ev.type,"</p>");
 					});
-					store.on("addCallbacks",function(ev){
+					uploader.on("addCallbacks",function(ev){
 						test.echo("<p>"+'id: ' + ev.id,',type: ' + ev.type,"</p>");
 					});
-					store.on("swfReady",function(ev){
+					uploader.on("swfReady",function(ev){
 						test.echo("<p>"+'id: ' + ev.id,',type: ' + ev.type,"</p>");
-						S.log(store);
+						S.log(uploader);
 					});
-					
-					store.on("initialize",function(ev){
-						test.echo("<p>"+'id: ' + ev.id,',type: ' + ev.type,"</p>");
-					});
-					store.on("contentReady",function(ev){
+					// 2.添加常规 内容 监听
+					uploader.on("contentReady",function(ev){
 						test.echo("<p>"+'id: ' + ev.id,',type: ' + ev.type,"</p>");
 					});
-					store.on("new",function(ev){
+					uploader.on("select",function(ev){
 						test.echo("<p>"+'id: ' + ev.id,',type: ' + ev.type,"</p>");
 					});
-					store.on("storage",function(ev){
+					uploader.on("cancel",function(ev){
 						test.echo("<p>"+'id: ' + ev.id,',type: ' + ev.type,"</p>");
 					});
-					store.on("status",function(ev){
+					uploader.on("open",function(ev){
 						test.echo("<p>"+'id: ' + ev.id,',type: ' + ev.type,"</p>");
 					});
-					store.on("pending",function(ev){
+					uploader.on("progress",function(ev){
 						test.echo("<p>"+'id: ' + ev.id,',type: ' + ev.type,"</p>");
 					});
-					store.on("clear",function(ev){
+					uploader.on("complete",function(ev){
+						test.echo("<p>"+'id: ' + ev.id,',type: ' + ev.type,"</p>");
+					}); 
+					uploader.on("uploadCompleteData",function(ev){
 						test.echo("<p>"+'id: ' + ev.id,',type: ' + ev.type,"</p>");
 					});
-					store.on("showSettings",function(ev){
+					uploader.on("listComplete",function(ev){
 						test.echo("<p>"+'id: ' + ev.id,',type: ' + ev.type,"</p>");
 					});
-					
-					store.on("error",function(ev){
-						test.echo("<p>"+	'id: ' + ev.id,
-									',type: ' + ev.type,
-									',info: ' + ev.info,
-									"</p>");
-						test.fail();
-						S.log(ev);
+					uploader.on("httpStatus",function(ev){
+						test.echo("<p>"+'id: ' + ev.id,',type: ' + ev.type,"</p>");
 					});
-					
-					
-					store.init();
-					t = test;
+					uploader.on("ioError",function(ev){
+						test.echo("<p>"+'id: ' + ev.id,',type: ' + ev.type,"</p>");
+					});
+					uploader.on("securityError",function(ev){
+						test.echo("<p>"+'id: ' + ev.id,',type: ' + ev.type,"</p>");
+					});
+					// 3.添加鼠标事件 监听
+					uploader.on("mouseOver",function(ev){
+						test.echo("<p>"+'id: ' + ev.id,',type: ' + ev.type,"</p>");
+					});
+					uploader.on("mouseDown",function(ev){
+						test.echo("<p>"+'id: ' + ev.id,',type: ' + ev.type,"</p>");
+					});
+					uploader.on("mouseUp",function(ev){
+						test.echo("<p>"+'id: ' + ev.id,',type: ' + ev.type,"</p>");
+					});
+					uploader.on("mouseOut",function(ev){
+						test.echo("<p>"+'id: ' + ev.id,',type: ' + ev.type,"</p>");
+					});
+					uploader.on("click",function(ev){
+						test.echo("<p>"+'id: ' + ev.id,',type: ' + ev.type,"</p>");
+					});
+					uploader.on("doubleClick",function(ev){
+						test.echo("<p>"+'id: ' + ev.id,',type: ' + ev.type,"</p>");
+					});
+					// 4.初始化
+					uploader.init();
 				}
 				
-				
-				
 			
-			function length(){
-				t.echo(store.getLength());
+			function browse(){
+				uploader.browse();
 			}
-			
-			function getItem(){
-				t.echo(store.getItem(KEY));
+			function upload(){
+				//TODO:
 			}
-			
-			function setItem(){
-				store.setItem(KEY,VAL);
-				t.echo("setItem now");
+			function cancel(){
+				uploader.cancel();
 			}
-				
-			function key(){
-				t.echo("<p>"+store.key(0),"</p>");
-			}	
-			
-			function removeItem(){
-				store.removeItem(KEY);
-				t.echo("<p>"+"removeItem:"+KEY,"</p>");
+			function getFile(){
+				//TODO:
 			}
-			
-			function cls(){
-				store.clear();
-				t.echo("<p>"+"clear:","</p>");
+			function removeFile(){
+				//TODO:
 			}
-			
-			function setItemByCustom(){
-				cK = prompt("input key:");
-				if(cK&&cK.length>0){
-					cV = prompt("input value:");
-					if(!cV||cV.length<1)cV = "null"	
-					store.setItem(cK,cV);
-					t.echo("setItemByCustom now");
-				}
+			function lock(){
+				uploader.lock();
 			}
-			
-			function getItemByCustom(){
-				cK = prompt("input key:");
-				if(cK&&cK.length>0){
-					t.echo(store.getItem(cK));
-				}
-			}
-			
-			function keyByCustom(){
-				var i = prompt("input index:");
-					t.echo("<p>"+store.key(i),"</p>");
-			}
-			
-			function removeItemByCustom(){
-				cK = prompt("input key:");
-				if(cK&&ck.length>0){
-					store.removeItem(KEY);
-					length();
-				}
-			}
-			
-			
-			function getModificationDate(){
-				t.echo("<p>ModificationDate:"+store.getModificationDate(),"</p>");
-			}
-			
-			function hasAdequateDimensions(){
-				t.echo("<p>hasAdequateDimensions:"+store.hasAdequateDimensions(),"</p>");
-			}
-			function displaySettings(){
-				if(store.hasAdequateDimensions){
-					store.displaySettings();
-				}else{
-					t.fail();
-				}
-			}
-			function getUseCompression(){
-				t.echo("<p>getUseCompression:"+store.getUseCompression(),"</p>");
-			}
-			function getSize(){
-				t.echo("<p>getSize:"+store.getSize(),"Bytes</p>");
-			}
-			function setMinDiskSpace(){
-				var size = prompt("input min disk space(B):");
-				if(!size || isNaN(size)) size = 1000;
-				t.echo("<p>setMinDiskSpace.Status:"+store.setMinDiskSpace(size),"Bytes</p>");
+			function unlock(){
+				uploader.unlock();
 			}
 				
 		</script>
