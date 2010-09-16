@@ -153,7 +153,7 @@
 		
 		private function hotspotResize(e: Event = null): void {
 			hotspot.graphics.clear();
-			hotspot.graphics.beginFill(0);
+			hotspot.graphics.beginFill(0,0);
 			hotspot.graphics.drawRect(0, 0, stage.stageWidth,stage.stageHeight);
 			hotspot.graphics.endFill();
 		}

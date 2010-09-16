@@ -55,7 +55,7 @@ package com.xintend.net.uploader {
 				for (i = 0; i < n;  i++) {
 					fileter = fileFilters[i];
 					if ("ext" in fileter) {
-						filters[i] = new FileFilter( "desc" in fileter ? fileter.desc : "Files",
+						filters[i] = new FileFilter( "desc" in fileter ? fileter.desc : "ALL Files",
 													  fileter.ext,
 													  "mac" in fileter ? fileter.mac : null
 														);

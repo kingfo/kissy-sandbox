@@ -24,6 +24,7 @@
 		</div>
 		<br/>
 		<button type="button" onclick="browse();">browse</button>
+		<button type="button" onclick="browseMedia();">browseMedia</button>
 		<button type="button" onclick="upload();">upload</button>
 		<button type="button" onclick="getFile();">getFile</button>
 		<button type="button" onclick="removeFile();">removeFile</button>
@@ -54,6 +55,7 @@
 			
 				function test_create(test){
 					// 1.添加常规 AJBridge 监听
+					// see  http://kissyteam.github.com/kissy-ajbridge/docs/ajbridge/index.html#events 
 					uploader.on("init",function(ev){
 						test.echo("<p>"+'id: ' + ev.id,',type: ' + ev.type,"</p>");
 					});
@@ -68,49 +70,65 @@
 						S.log(uploader);
 					});
 					// 2.添加常规 内容 监听
+					
 					uploader.on("contentReady",function(ev){
+						// flash 完成代码初始化
 						test.echo("<p>"+'id: ' + ev.id,',type: ' + ev.type,"</p>");
 					});
 					uploader.on("select",function(ev){
+						// flash 选择了文件
 						test.echo("<p>"+'id: ' + ev.id,',type: ' + ev.type +", files:" + S.JSON.stringify(ev.files) + "</p>");
 						files=ev.files;
 					});
 					uploader.on("cancel",function(ev){
+						// flash 取消选择文件
 						test.echo("<p>"+'id: ' + ev.id,',type: ' + ev.type,"</p>");
 					});
 					uploader.on("locked",function(ev){
+						// 上传组件已上锁
 						test.echo("<p>"+'id: ' + ev.id,',type: ' + ev.type,"</p>");
 					});
 					uploader.on("unlocked",function(ev){
+						// 上传组件已解锁
 						test.echo("<p>"+'id: ' + ev.id,',type: ' + ev.type,"</p>");
 					});
 					uploader.on("open",function(ev){
+						// 上传开始
 						test.echo("<p>"+'id: ' + ev.id,',type: ' + ev.type,"</p>");
 					});
 					uploader.on("progress",function(ev){
-						test.echo("<p>"+'id: ' + ev.id,',type: ' + ev.type,"</p>");
+						// 上传进行中
+						test.echo("<p>"+'id: ' + ev.id,',type: ' + ev.type+", event:" + S.JSON.stringify(ev) +"</p>");
 					});
 					uploader.on("complete",function(ev){
+						// 上传完成
 						test.echo("<p>"+'id: ' + ev.id,',type: ' + ev.type,"</p>");
 					}); 
 					uploader.on("uploadCompleteData",function(ev){
-						test.echo("<p>"+'id: ' + ev.id,',type: ' + ev.type,"</p>");
+						// 上传成功 并返回数据
+						test.echo("<p>"+'id: ' + ev.id,',type: ' + ev.type+", event:" + S.JSON.stringify(ev) +"</p>");
 					});
 					uploader.on("listComplete",function(ev){
+						// 所有文件上传成功
 						test.echo("<p>"+'id: ' + ev.id,',type: ' + ev.type,"</p>");
 					});
 					uploader.on("httpStatus",function(ev){
-						test.echo("<p>"+'id: ' + ev.id,',type: ' + ev.type,"</p>");
+						// http状态
+						test.echo("<p>"+'id: ' + ev.id,',type: ' + ev.type+", event:" + S.JSON.stringify(ev) +"</p>");
 					});
 					uploader.on("ioError",function(ev){
-						test.echo("<p>"+'id: ' + ev.id,',type: ' + ev.type,"</p>");
+						//  ic 错误
+						test.echo("<p>"+'id: ' + ev.id,',type: ' + ev.type+", event:" + S.JSON.stringify(ev) +"</p>");
 					});
 					uploader.on("securityError",function(ev){
-						test.echo("<p>"+'id: ' + ev.id,',type: ' + ev.type,"</p>");
+						// 安全错误
+						// 可能没有 部属   crossdomain.xml
+						// see http://www.adobe.com/devnet/articles/crossdomain_policy_file_spec.html
+						test.echo("<p>"+'id: ' + ev.id,',type: ' + ev.type+", event:" + S.JSON.stringify(ev) +"</p>");
 					});
 					// 3.添加鼠标事件 监听
 					uploader.on("mouseOver",function(ev){
-						test.echo("<p>"+'id: ' + ev.id,',type: ' + ev.type,"</p>");
+						test.echo("<p>"+'id: ' + ev.id,',type: ' + ev.type /*+ ", event:" + S.JSON.stringify(ev)*/ +"</p>");
 					});
 					uploader.on("mouseDown",function(ev){
 						test.echo("<p>"+'id: ' + ev.id,',type: ' + ev.type,"</p>");
@@ -134,11 +152,24 @@
 			
 			function browse(){
 				// 请注意 此处的  browse 并不是 开始浏览文件 ,而是做相关浏览配置
-				T.echo("<p>"+'browse success: ' + uploader.browse(false) + "</p>");
+				T.echo("<p>"+'browse success: ' + uploader.browse() + "</p>");
+			}
+			function browseMedia(){
+				// 请注意 此处的  browse 并不是 开始浏览文件 ,而是做相关浏览配置
+				T.echo("<p>"+'browse success: ' + uploader.browse(false,[{desc:"PNG,GIF",ext:"*.png;*.gif"},{desc:"SWF",ext:"*.swf"}]) + "</p>");
 			}
 			function upload(){
+				//TODO: 
+				// 在初始化的 swf 参数中已定义好 服务器 url 和 服务器 url 参数
+				uploader.upload();
+			}
+			function upload2(){
 				//TODO:
-				uploader.upload("test.domain.com");
+				// 重定义上传路径
+				uploader.upload("test.domain.com",{
+						username:"user",
+						password:"1297ew9jd23888s834u3j2u38"
+				});
 			}
 			function cancel(){
 				uploader.cancel(files[0].fid);
