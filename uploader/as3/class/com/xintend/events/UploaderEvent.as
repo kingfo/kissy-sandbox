@@ -8,11 +8,13 @@ package com.xintend.events {
 	public class UploaderEvent extends Event {
 		
 		public static const LIST_COMPLETE: String = "listComplete";
+		public static const LOCKED: String = "locked";
+		public static const UNLOCKED: String = "unlocked";
 		//public static const CONTENT_READY: String = "contentReady";
 		
-		public var files: Array;
+		public var files: *;
 		
-		public function UploaderEvent(type:String,files:Array=null, bubbles:Boolean=false, cancelable:Boolean=false) { 
+		public function UploaderEvent(type:String,files:* =null, bubbles:Boolean=false, cancelable:Boolean=false) { 
 			super(type, bubbles, cancelable);
 			this.files = files;
 		} 

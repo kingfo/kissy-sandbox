@@ -51,7 +51,8 @@
 			// 2.创建并配置上传实例
 			uploader = new Uploader(defaultServerURL, defaultServerParameters);
 			// 3.创建监听程序
-			//uploader.addEventListener(UploaderEvent.CONTENT_READY, eventHandler);
+			uploader.addEventListener(UploaderEvent.LOCKED, eventHandler);
+			uploader.addEventListener(UploaderEvent.UNLOCKED, eventHandler);
 			uploader.addEventListener(UploaderEvent.LIST_COMPLETE, eventHandler);
 			uploader.addEventListener(Event.COMPLETE, eventHandler);
 			uploader.addEventListener(HTTPStatusEvent.HTTP_STATUS, eventHandler);
@@ -119,8 +120,9 @@
 		 * @param	mulit
 		 * @param	fileFilters
 		 */
-		private function browse(mulit: Boolean = true, fileFilters: Array = null):void{
+		private function browse(mulit: Boolean = true, fileFilters: Array = null):Boolean{
 			argumentsMap["browse"] = [mulit, fileFilters];
+			return !uploader.isLocked;
  		}
 		
 		

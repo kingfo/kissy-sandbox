@@ -25,9 +25,9 @@
 		<br/>
 		<button type="button" onclick="browse();">browse</button>
 		<button type="button" onclick="upload();">upload</button>
-		<button type="button" onclick="cancel();">cancel</button>
 		<button type="button" onclick="getFile();">getFile</button>
 		<button type="button" onclick="removeFile();">removeFile</button>
+		<button type="button" onclick="cancel();">cancel</button>
 		<button type="button" onclick="lock();">lock</button>
 		<button type="button" onclick="unlock();">unlock</button>
 		
@@ -35,6 +35,7 @@
 		<script>
 			var S = KISSY,
 				F = S.Flash,
+				T = KISSY.Test
 				A = AJBridge,
 				Uploader = A.Uploader,
 				config ={
@@ -48,7 +49,8 @@
 				},
 				id="myFlashContent",
 				uploader = new Uploader(id,config),
-				cK,cV;
+				cK,cV,
+				files;
 			
 				function test_create(test){
 					// 1.添加常规 AJBridge 监听
@@ -70,9 +72,16 @@
 						test.echo("<p>"+'id: ' + ev.id,',type: ' + ev.type,"</p>");
 					});
 					uploader.on("select",function(ev){
-						test.echo("<p>"+'id: ' + ev.id,',type: ' + ev.type,"</p>");
+						test.echo("<p>"+'id: ' + ev.id,',type: ' + ev.type +", files:" + S.JSON.stringify(ev.files) + "</p>");
+						files=ev.files;
 					});
 					uploader.on("cancel",function(ev){
+						test.echo("<p>"+'id: ' + ev.id,',type: ' + ev.type,"</p>");
+					});
+					uploader.on("locked",function(ev){
+						test.echo("<p>"+'id: ' + ev.id,',type: ' + ev.type,"</p>");
+					});
+					uploader.on("unlocked",function(ev){
 						test.echo("<p>"+'id: ' + ev.id,',type: ' + ev.type,"</p>");
 					});
 					uploader.on("open",function(ev){
@@ -124,19 +133,23 @@
 				
 			
 			function browse(){
-				uploader.browse();
+				// 请注意 此处的  browse 并不是 开始浏览文件 ,而是做相关浏览配置
+				T.echo("<p>"+'browse success: ' + uploader.browse(false) + "</p>");
 			}
 			function upload(){
 				//TODO:
+				uploader.upload("test.domain.com");
 			}
 			function cancel(){
-				uploader.cancel();
+				uploader.cancel(files[0].fid);
 			}
 			function getFile(){
 				//TODO:
+				T.echo("<p>"+'getFile: ' + uploader.getFile(files[0].fid) + "</p>");
 			}
 			function removeFile(){
 				//TODO:
+				uploader.removeFile(files[0].fid);
 			}
 			function lock(){
 				uploader.lock();

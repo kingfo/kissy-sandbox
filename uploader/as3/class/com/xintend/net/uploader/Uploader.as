@@ -14,14 +14,14 @@ package com.xintend.net.uploader {
 	import flash.net.URLRequest;
 	import flash.net.URLRequestMethod;
 	import flash.net.URLVariables;
+	import flash.utils.Dictionary;
 	/**
 	 * ...
 	 * @author Kingfo[Telds longzang]
 	 */
 	public class Uploader extends EventDispatcher implements IUploader {
 		
-		
-		public function get pendingFiles():Object { return _pendingFiles; }
+		public function get isLocked():Boolean { return _isLocked; }
 		
 		public function Uploader(serverURL:String,serverParameters:Object) {
 			this.serverURL = serverURL;
@@ -42,7 +42,10 @@ package com.xintend.net.uploader {
 			var i: int;
 			var n: int = (fileFilters||[]).length;
 			var fileter: Object;
-			if (isLocked) return false;
+			if (_isLocked) {
+				dispatchEvent(new UploaderEvent(UploaderEvent.LOCKED));
+				return false;
+			}
 			
 			isMulit = mulit;
 			
@@ -74,8 +77,9 @@ package com.xintend.net.uploader {
 				return fileReference.browse(filters);
 			}
 			
-			isLocked = true;
+			_isLocked = true;
 			
+			return true;
 		}
 		/**
 		 * 开始将用户选择的文件上载到远程服务器。
@@ -98,10 +102,11 @@ package com.xintend.net.uploader {
 				for (key in this.serverParameters) {
 					params[key] = this.serverParameters[key];
 				}
-				request = new URLRequest(this.serverURL);
-				request.method = URLRequestMethod.POST;
 			}
-			for each(fileReference in _pendingFiles) {
+			request = new URLRequest(this.serverURL);
+			request.method = URLRequestMethod.POST;
+			request.data = params;
+			for each(fileReference in pendingFiles) {
 				fileReference.upload(request, uploadDataFieldName);
 			}
 			return true;
@@ -112,9 +117,9 @@ package com.xintend.net.uploader {
 		 * @return
 		 */
 		public function cancel(fid: String): Object {
-			var fileReference: FileReference = _pendingFiles[fid];
+			var fileReference: FileReference = pendingFiles[fid];
 			if (fileReference) fileReference.cancel();
-			return convertFileReferenceToObject(_pendingFiles[fid]);
+			return convertFileReferenceToObject(pendingFiles[fid]);
 		}
 		/**
 		 * 通过 文件序列号获取文件
@@ -122,7 +127,7 @@ package com.xintend.net.uploader {
 		 * @return
 		 */
 		public function getFile(fid: String): Object {
-			return convertFileReferenceToObject(_pendingFiles[fid]);
+			return convertFileReferenceToObject(pendingFiles[fid]);
 		}
 		/**
 		 * 通过 文件序列号删除文件
@@ -130,7 +135,7 @@ package com.xintend.net.uploader {
 		 * @return
 		 */
 		public function removeFile(fid: String): Object {
-			var fileReference: FileReference = _pendingFiles[fid];
+			var fileReference: FileReference = pendingFiles[fid];
 			var o: Object = convertFileReferenceToObject(fileReference);
 			removePendingFile(fileReference);
 			return o;
@@ -139,26 +144,29 @@ package com.xintend.net.uploader {
 		 * 锁定上传功能
 		 */
 		public function lock(): void {
-			isLocked = true;
+			_isLocked = true;
+			dispatchEvent(new UploaderEvent(UploaderEvent.LOCKED));
 		}
 		/**
 		 * 解锁上传功能
 		 */
 		public function unlock(): void {
-			isLocked = false;
+			_isLocked = false;
+			dispatchEvent(new UploaderEvent(UploaderEvent.UNLOCKED));
 		}
 		
 		
-		public function convertFileReferenceToObject(fileReference: *): Object {
+		public function convertFileReferenceToObject(fileReference: * ): Object {
+			var o: Object;
 			if (!fileReference || !(fileReference is FileReference)) return null;
-			var o: Object = { };
+			o = { };
 			o.creationDate = fileReference.creationDate;
 			o.creator = fileReference.creator;
 			o.modificationDate = fileReference.modificationDate;
 			o.name = fileReference.name;
 			o.size = fileReference.size;
 			o.type = fileReference.type;
-			o.fid = pendingIds[fileReference];
+			o.fid = pendingIds[fileReference] || null;
 			return o;
 		}
 		
@@ -168,17 +176,18 @@ package com.xintend.net.uploader {
 			dispatcher.addEventListener(Event.SELECT, eventHandler);
         }
 		
+		
 		protected function eventHandler(e: Event): void {
 			var fileList: Array;
 			var event: UploaderEvent;
 			switch(e.type) {
 				case Event.SELECT:
 					fileList = addPendingFile(e.target);
-					isLocked = false;
+					_isLocked = false;
 					event = new UploaderEvent(e.type, fileList);
 				break;
 				case Event.CANCEL:
-					isLocked = false;
+					_isLocked = false;
 					event = new UploaderEvent(e.type, [convertFileReferenceToObject(e.target)]);
 				break;
 				case DataEvent.UPLOAD_COMPLETE_DATA:
@@ -206,43 +215,57 @@ package com.xintend.net.uploader {
 		 * @return					是转化为纯粹 Object 的数组
 		 */
 		protected function addPendingFile(file: Object): Array {
-			var a: Array = [];
 			var fileList: Array = [];
 			var i: int;
 			var n: int;
-			var key: String;
 			var fileReference: FileReference;
+			var fileReferenceList: FileReferenceList;
 			if (file is FileReferenceList) {
-				a.concat(file.fileList);
-			}else if(file is FileReference) {
-				a.push(file);
-			}
-			n = a.length;
-			for (i = 0; i < n; i++ ) {
-				key = "fid" + (++FILE_ID);
-				fileReference = a[i];
-				_pendingFiles[key] = fileReference;
-				pendingIds[fileReference] = key;
-				// 添加网络/io监听
-				fileReference.addEventListener(Event.COMPLETE, eventHandler);
-				fileReference.addEventListener(HTTPStatusEvent.HTTP_STATUS, eventHandler);
-				fileReference.addEventListener(IOErrorEvent.IO_ERROR, eventHandler);
-				fileReference.addEventListener(Event.OPEN, eventHandler);
-				fileReference.addEventListener(ProgressEvent.PROGRESS, eventHandler);
-				fileReference.addEventListener(SecurityErrorEvent.SECURITY_ERROR, eventHandler);
-				fileReference.addEventListener(DataEvent.UPLOAD_COMPLETE_DATA, eventHandler);
+				fileReferenceList = file as FileReferenceList;
+				n = fileReferenceList.fileList.length;
+				for (i = 0; i < n; i++ ) {
+					// 添加网络/io监听
+					fileReference = fileReferenceList.fileList[i];
+					
+					saveFile(fileReference);
+					addNetListeners(fileReference);
+					pendingLength++;
+					fileList.push(convertFileReferenceToObject(fileReference));
+				}
 				
-				fileList[i] = convertFileReferenceToObject(fileReference);
+			}else if (file is FileReference) {
+				fileReference = file as FileReference;
+				saveFile(fileReference);
+				addNetListeners(fileReference);
+				fileList = [convertFileReferenceToObject(fileReference)];
 			}
-			pendingLength++;
 			return fileList;
+		}
+		
+		
+		protected function addNetListeners(dispatcher: IEventDispatcher): void {
+			dispatcher.addEventListener(Event.COMPLETE, eventHandler);
+			dispatcher.addEventListener(HTTPStatusEvent.HTTP_STATUS, eventHandler);
+			dispatcher.addEventListener(IOErrorEvent.IO_ERROR, eventHandler);
+			dispatcher.addEventListener(Event.OPEN, eventHandler);
+			dispatcher.addEventListener(ProgressEvent.PROGRESS, eventHandler);
+			dispatcher.addEventListener(SecurityErrorEvent.SECURITY_ERROR, eventHandler);
+			dispatcher.addEventListener(DataEvent.UPLOAD_COMPLETE_DATA, eventHandler);
+        }
+		
+		
+		protected function saveFile(fileReference: FileReference): void {
+			var fid: String;
+			fid = String(FILE_ID++);
+			pendingFiles[fid] = fileReference;
+			pendingIds[fileReference] = fid;
 		}
 		
 		protected function removePendingFile(file: FileReference): void {
 			if (!file) return;
 			var key: String = pendingIds[file];
 			if (!key) return;
-			var fileReference: FileReference = _pendingFiles[key];
+			var fileReference: FileReference = pendingFiles[key];
 			if (!fileReference) return;
 			fileReference.removeEventListener(Event.COMPLETE, eventHandler);
 			fileReference.removeEventListener(HTTPStatusEvent.HTTP_STATUS, eventHandler);
@@ -251,9 +274,9 @@ package com.xintend.net.uploader {
 			fileReference.removeEventListener(ProgressEvent.PROGRESS, eventHandler);
 			fileReference.removeEventListener(SecurityErrorEvent.SECURITY_ERROR, eventHandler);
 			fileReference.removeEventListener(DataEvent.UPLOAD_COMPLETE_DATA, eventHandler);
-			_pendingFiles[key] = null;
+			pendingFiles[key] = null;
 			pendingIds[fileReference] = null;
-			delete _pendingFiles[key];
+			delete pendingFiles[key];
 			delete pendingIds[fileReference];
 			pendingLength--;
 			if (pendingLength == 0) {
@@ -262,18 +285,20 @@ package com.xintend.net.uploader {
 		}
 
 		
-		private var _pendingFiles: Object = { };
-		private var pendingIds: Object = { };
+		private var pendingFiles: Dictionary = new Dictionary(true);
+		private var pendingIds: Object = new Dictionary(true);
 		private var pendingLength: int;
 		
 		private var serverURL: String;
 		private var serverParameters: Object;
 		private var isMulit: Boolean;
-		private var isLocked: Boolean = false;
+		private var _isLocked: Boolean = false;
 		private var fileReferenceList: FileReferenceList;
 		private var fileReference: FileReference;
 		
 		private var FILE_ID: int;
+		
+		
 		
 		
 	}
