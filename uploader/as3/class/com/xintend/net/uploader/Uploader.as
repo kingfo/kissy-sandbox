@@ -180,6 +180,7 @@ package com.xintend.net.uploader {
 		protected function eventHandler(e: Event): void {
 			var fileList: Array;
 			var event: UploaderEvent;
+			trace(e.type);
 			switch(e.type) {
 				case Event.SELECT:
 					fileList = addPendingFile(e.target);
@@ -190,8 +191,8 @@ package com.xintend.net.uploader {
 					_isLocked = false;
 					event = new UploaderEvent(e.type, [convertFileReferenceToObject(e.target)]);
 				break;
-				case DataEvent.UPLOAD_COMPLETE_DATA:
 				case Event.COMPLETE:
+				case DataEvent.UPLOAD_COMPLETE_DATA:
 					removePendingFile(e.target as FileReference);
 					event = new UploaderEvent(e.type, [convertFileReferenceToObject(e.target)]);
 				break;

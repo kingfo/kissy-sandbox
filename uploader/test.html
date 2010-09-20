@@ -26,6 +26,7 @@
 		<button type="button" onclick="browse();">browse</button>
 		<button type="button" onclick="browseMedia();">browseMedia</button>
 		<button type="button" onclick="upload();">upload</button>
+		<button type="button" onclick="upload2();">upload2</button>
 		<button type="button" onclick="getFile();">getFile</button>
 		<button type="button" onclick="removeFile();">removeFile</button>
 		<button type="button" onclick="cancel();">cancel</button>
@@ -36,22 +37,26 @@
 		<script>
 			var S = KISSY,
 				F = S.Flash,
-				T = KISSY.Test
+				T = KISSY.Test,
 				A = AJBridge,
 				Uploader = A.Uploader,
 				config ={
 					src:"uploader.swf",
 					params:{
 						bgcolor:"#FFCCCC",
+						wmode:"transparent",
 						scale:"showall"
+					},
+					attrs:{
+						width:60,
+						height:25
 					},
 					hand:true,
 					btn:true
 				},
 				id="myFlashContent",
-				uploader = new Uploader(id,config),
-				cK,cV,
-				files;
+				files,
+				uploader = new Uploader(id,config);
 			
 				function test_create(test){
 					// 1.添加常规 AJBridge 监听
@@ -166,7 +171,7 @@
 			function upload2(){
 				//TODO:
 				// 重定义上传路径
-				uploader.upload("test.domain.com",{
+				uploader.upload("http://127.0.0.1:8080/upload.php",{
 						username:"user",
 						password:"1297ew9jd23888s834u3j2u38"
 				});
