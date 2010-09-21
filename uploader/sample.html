@@ -152,15 +152,14 @@
 					if(target.tagName.toLowerCase() == 'a') {
 						ev.preventDefault();
 						//删除文件
-						uploader.removeFile(target.getAttribute('data-fid'));
-						ul.removeChild(target.parentNode);
+						alert("file removed:" + uploader.removeFile(D.parent(target).getAttribute('data-fid')));
 						if(D.children(ul).length == 0) {
 							D.addClass(container, 'hidden');
 						}
 					} else if(D.hasClass(target, 'clear')) {
 						//清除所有文件
 						while(target = D.children(ul)[0]) {
-							uploader.removeFile(target.getAttribute('data-fid'));
+							alert("file removed:" + uploader.removeFile(D.parent(target).getAttribute('data-fid')));
 							ul.removeChild(target);
 						}
 						D.addClass(container, 'hidden');

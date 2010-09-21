@@ -5,6 +5,7 @@
 	import com.xintend.trine.ajbridge.AJBridge;
 	import flash.display.Sprite;
 	import flash.events.DataEvent;
+	import flash.events.ErrorEvent;
 	import flash.events.Event;
 	import flash.events.HTTPStatusEvent;
 	import flash.events.IOErrorEvent;
@@ -63,6 +64,8 @@
 			uploader.addEventListener(DataEvent.UPLOAD_COMPLETE_DATA, eventHandler);
 			uploader.addEventListener(Event.SELECT, eventHandler);
 			uploader.addEventListener(Event.CANCEL, eventHandler);
+			uploader.addEventListener(ErrorEvent.ERROR, eventHandler);
+			
 			
 			
 			

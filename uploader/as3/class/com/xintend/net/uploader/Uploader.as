@@ -1,6 +1,7 @@
 package com.xintend.net.uploader {
 	import com.xintend.events.UploaderEvent;
 	import flash.events.DataEvent;
+	import flash.events.ErrorEvent;
 	import flash.events.Event;
 	import flash.events.EventDispatcher;
 	import flash.events.HTTPStatusEvent;
@@ -21,7 +22,9 @@ package com.xintend.net.uploader {
 	 */
 	public class Uploader extends EventDispatcher implements IUploader {
 		
-		public function get isLocked():Boolean { return _isLocked; }
+		public function get isLocked(): Boolean { return _isLocked; }
+		
+		public static const FID_PREFIX: String = "FID";
 		
 		public function Uploader(serverURL:String,serverParameters:Object) {
 			this.serverURL = serverURL;
@@ -64,18 +67,23 @@ package com.xintend.net.uploader {
 				}
 			}
 			
-			// 多文件上传验证
-			if (isMulit) {
-				if (!fileReferenceList) {
-					fileReferenceList = new FileReferenceList();
-					configureListeners(fileReferenceList);
+			try {
+				// 多文件上传验证
+				if (isMulit) {
+					if (!fileReferenceList) {
+						fileReferenceList = new FileReferenceList();
+						configureListeners(fileReferenceList);
+					}
+					return fileReferenceList.browse(filters);
+				}else {
+					fileReference = new FileReference();
+					configureListeners(fileReference);
+					return fileReference.browse(filters);
 				}
-				return fileReferenceList.browse(filters);
-			}else {
-				fileReference = new FileReference();
-				configureListeners(fileReference);
-				return fileReference.browse(filters);
+			}catch (e: Error) {
+				dispatchEvent(new ErrorEvent(ErrorEvent.ERROR, false, true, e.message));
 			}
+			
 			
 			_isLocked = true;
 			
@@ -106,9 +114,14 @@ package com.xintend.net.uploader {
 			request = new URLRequest(this.serverURL);
 			request.method = URLRequestMethod.POST;
 			request.data = params;
-			for each(fileReference in pendingFiles) {
-				fileReference.upload(request, uploadDataFieldName);
+			try {
+				for each(fileReference in pendingFiles) {
+					fileReference.upload(request, uploadDataFieldName);
+				}
+			}catch (e: Error) {
+				dispatchEvent(new ErrorEvent(ErrorEvent.ERROR, false, true, e.message));
 			}
+			
 			return true;
 		}
 		/**
@@ -135,7 +148,8 @@ package com.xintend.net.uploader {
 		 * @return
 		 */
 		public function removeFile(fid: String): Object {
-			var fileReference: FileReference = pendingFiles[fid];
+			var fileReference: FileReference = pendingFiles[fid] as FileReference;
+			trace(fileReference,fid);
 			var o: Object = convertFileReferenceToObject(fileReference);
 			removePendingFile(fileReference);
 			return o;
@@ -257,7 +271,7 @@ package com.xintend.net.uploader {
 		
 		protected function saveFile(fileReference: FileReference): void {
 			var fid: String;
-			fid = String(FILE_ID++);
+			fid = FID_PREFIX + Number(FILE_ID++).toString(16).toUpperCase();
 			pendingFiles[fid] = fileReference;
 			pendingIds[fileReference] = fid;
 		}
