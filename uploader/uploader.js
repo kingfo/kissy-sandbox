@@ -1,9 +1,6 @@
 /**
  * @author kingfo  oicuicu@gmail.com
  */
-/**
- * @author kingfo  oicuicu@gmail.com
- */
 AJBridge.add("uploader", function(A){
 	
 	var S = KISSY,
@@ -69,5 +66,5 @@ AJBridge.add("uploader", function(A){
  * NOTES:
  * 2010/08/12	重构了代码，基于AJBridge 1.0.10
  * 2010/08/27	重构了代码，基于AJBridge 1.0.12
- * 
  */
+
