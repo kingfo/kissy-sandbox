@@ -23,7 +23,7 @@ package com.xintend.net.uploader {
 		 * @param	uploadDataFieldName			POST操作数据属性。默认是Filedata不需要更改，请务必保持此指不为空或空字符串。
 		 * @return
 		 */
-		function upload(serverURL:String=null, serverURLParameter:Object = null,hasResponse:Boolean=false, uploadDataFieldName:String = "Filedata") : Boolean;
+		function upload(serverURL:String=null, serverURLParameter:Object = null,hasResponse:*=null, uploadDataFieldName:String = "Filedata") : Boolean;
 		/**
 		 * 取消指定文件上传
 		 * @param	fid							指browse行为中发生选择的文件的文件内部id。该名称由事件形式抛出。
@@ -50,6 +50,10 @@ package com.xintend.net.uploader {
 		 * 可以继续添加文件
 		 */
 		function unlock(): void;
+		/**
+		 * 清除所有文件
+		 */
+		function clear(): void;
 		
 		function convertFileReferenceToObject(fileReference:*): Object;
 	}

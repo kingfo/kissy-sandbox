@@ -33,6 +33,7 @@
 		<button type="button" onclick="cancel();">cancel</button>
 		<button type="button" onclick="lock();">lock</button>
 		<button type="button" onclick="unlock();">unlock</button>
+		<button type="button" onclick="clearAll();">clear it</button>
 		
 		
 		<script>
@@ -52,6 +53,9 @@
 						width:60,
 						height:25
 					},
+					ds:"http://127.0.0.1:8080/upload.php",
+					dsp:{username:"admin",password:"cmd"},
+					dsr:true,
 					hand:true,
 					btn:true
 				},
@@ -96,6 +100,10 @@
 					});
 					uploader.on("unlocked",function(ev){
 						// 上传组件已解锁
+						test.echo("<p>"+'id: ' + ev.id,',type: ' + ev.type,"</p>");
+					});
+					uploader.on("clear",function(ev){
+						// 清空
 						test.echo("<p>"+'id: ' + ev.id,',type: ' + ev.type,"</p>");
 					});
 					uploader.on("open",function(ev){
@@ -184,7 +192,7 @@
 				uploader.upload("http://127.0.0.1:8080/upload.php",{
 						username:"user",
 						password:"1297ew9jd23888s834u3j2u38"
-				});
+				},false);
 			}
 			function cancel(){
 				uploader.cancel(files[0].fid);
@@ -202,6 +210,9 @@
 			}
 			function unlock(){
 				uploader.unlock();
+			}
+			function clearAll(){
+				uploader.clear();
 			}
 				
 		</script>

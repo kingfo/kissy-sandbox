@@ -5,7 +5,14 @@ AJBridge.add("uploader", function(A){
 	
 	var S = KISSY,
 		F = S.Flash,
-		UA = S.UA;
+		UA = S.UA,
+		DEFAULT_CONFIG_KEY = [
+			"ds",
+			"dsp",
+			"dsr",
+			"btn",
+			"hand"
+		];
 
 	/**
 	 * 本地存储类
@@ -13,31 +20,22 @@ AJBridge.add("uploader", function(A){
 	 * @param {Object} config								配置项
 	 * @param {String} config.ds							default server 的缩写。
 	 * @param {String} config.dsp							default server parameters 的缩写。
+	 * @param {Boolean} config.dsr							default server response 的缩写。
 	 * @param {Boolean} config.btn							启用按钮模式，默认 false。
 	 * @param {Boolean} config.hand							显示手型，默认 false。
 	 */
 	function Uploader(id, config){
 		var flashvars = { },
 			params,
-			ds,						//
-			dsp,
-			btn,
-			hand,
-			k;
+			k,i,n = DEFAULT_CONFIG_KEY.length;
 			
 		config = config || {};
 		params = config.params || {};
 
-		ds = config.ds;					
-		dsp = config.dsp;
-		btn = config.btn;
-		hand = config.hand;
-		
-		if(ds)flashvars.ds = ds;
-		if(dsp)flashvars.dsp = dsp;
-		if(btn)flashvars.btn = btn;
-		if(hand)flashvars.hand = hand;
-		
+		for ( i=0;i < n;i++){
+			k = DEFAULT_CONFIG_KEY[i];
+			if(k in config)flashvars[k] = config[k];
+		}
 		
 		config.params.flashvars = S.merge(config.params.flashvars, flashvars);
 
@@ -54,7 +52,8 @@ AJBridge.add("uploader", function(A){
 			"getFile",
 			"removeFile",
 			"lock",
-			"unlock"
+			"unlock",
+			"clear"
 		]
 	);
 	

@@ -10,12 +10,13 @@ package com.xintend.events {
 		public static const LIST_COMPLETE: String = "listComplete";
 		public static const LOCKED: String = "locked";
 		public static const UNLOCKED: String = "unlocked";
+		public static const CLEAR: String = "clear";
 		//public static const CONTENT_READY: String = "contentReady";
 		
 		public var files: *;
 		public var data: *;
 		
-		public function UploaderEvent(type:String,files:* =null,data:*=null, bubbles:Boolean=false, cancelable:Boolean=false) { 
+		public function UploaderEvent(type:String,files:* =null,data:*=null, bubbles:Boolean=false, cancelable:Boolean=true) { 
 			super(type, bubbles, cancelable);
 			this.files = files;
 			this.data = data;

@@ -33,9 +33,10 @@ package com.xintend.net.uploader {
 		
 		public static const FID_PREFIX: String = "FID";
 		
-		public function Uploader(serverURL:String,serverParameters:Object) {
+		public function Uploader(serverURL:String,serverParameters:Object,serverResponse:Boolean=false) {
 			this.serverURL = serverURL;
 			this.serverParameters = serverParameters;
+			this.serverResponse = serverResponse;
 			
 			FILE_ID = new Date().getTime();
 			
@@ -104,13 +105,18 @@ package com.xintend.net.uploader {
 		 * @param	uploadDataFieldName
 		 * @return
 		 */
-		public function upload(serverURL: String = null, serverURLParameter: Object = null,hasResponse:Boolean=false, uploadDataFieldName: String = "Filedata") : Boolean {
+		public function upload(serverURL: String = null, serverURLParameter: Object = null,hasResponse:*=null, uploadDataFieldName: String = "Filedata") : Boolean {
 			var request: URLRequest;
 			var fileReference: FileReference;
 			var params: URLVariables;
 			var key: String;
 			this.serverURL = serverURL || this.serverURL;
 			this.serverParameters = serverParameters || this.serverParameters;
+			if (hasResponse == null) {
+				hasResponse  = this.serverResponse;
+			}else {
+				this.serverResponse = hasResponse;
+			}
 			if (!this.serverURL) return false;
 			if (this.serverParameters) {
 				params = new URLVariables();
@@ -119,11 +125,11 @@ package com.xintend.net.uploader {
 				}
 			}
 			request = new URLRequest(this.serverURL);
-			request.method = URLRequestMethod.GET;
+			request.method = URLRequestMethod.POST;
 			request.data = params;
 			try {
 				for each(fileReference in pendingFiles) {
-					addNetListeners(fileReference,hasResponse);
+					addNetListeners(fileReference,this.serverResponse);
 					fileReference.upload(request, uploadDataFieldName);
 				}
 			}catch (e: Error) {
@@ -175,6 +181,19 @@ package com.xintend.net.uploader {
 		public function unlock(): void {
 			_isLocked = false;
 			dispatchEvent(new UploaderEvent(UploaderEvent.UNLOCKED));
+		}
+		/**
+		 * 清除所有文件
+		 */
+		public function clear(): void {
+			trace("clear");
+			var fileReference: FileReference;
+			var isClear: Boolean;
+			for each( fileReference in pendingFiles) {
+				removePendingFile(fileReference);
+				isClear = true;
+			}
+			if(isClear)dispatchEvent(new UploaderEvent(UploaderEvent.CLEAR));
 		}
 		
 		
@@ -315,6 +334,7 @@ package com.xintend.net.uploader {
 		
 		private var serverURL: String;
 		private var serverParameters: Object;
+		private var serverResponse: Boolean;
 		private var _isMulit: Boolean;
 		private var _isLocked: Boolean = false;
 		private var fileReferenceList: FileReferenceList;

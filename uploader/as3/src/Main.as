@@ -39,6 +39,7 @@
 			// 1.获取外部配置
 			defaultServerURL = params["ds"];
 			defaultServerParameters = params["dsp"];
+			defaultServerResponse = params["dsr"] != null ||  params["dsr"] ||  params["dsr"] == "true";
 			
 			
 			
@@ -50,11 +51,12 @@
 				defaultServerParameters = JSON.decode(defaultServerParameters);
 			}
 			// 2.创建并配置上传实例
-			uploader = new Uploader(defaultServerURL, defaultServerParameters);
+			uploader = new Uploader(defaultServerURL, defaultServerParameters,defaultServerResponse);
 			// 3.创建监听程序
 			uploader.addEventListener(UploaderEvent.LOCKED, eventHandler);
 			uploader.addEventListener(UploaderEvent.UNLOCKED, eventHandler);
 			uploader.addEventListener(UploaderEvent.LIST_COMPLETE, eventHandler);
+			uploader.addEventListener(UploaderEvent.CLEAR, eventHandler);
 			uploader.addEventListener(Event.COMPLETE, eventHandler);
 			uploader.addEventListener(HTTPStatusEvent.HTTP_STATUS, eventHandler);
 			uploader.addEventListener(IOErrorEvent.IO_ERROR, eventHandler);
@@ -77,7 +79,8 @@
 					getFile: uploader.getFile,
 					removeFile: uploader.removeFile,
 					lock: uploader.lock,
-					unlock: uploader.unlock
+					unlock: uploader.unlock,
+					clear: uploader.clear
 				};
 			
 			
@@ -164,6 +167,7 @@
 		private var uploader: Uploader;
 		private var defaultServerURL: String;
 		private var defaultServerParameters: * ;
+		private var defaultServerResponse:Boolean ;
 		private var hotspot: Sprite;
 		private var hand: Boolean;
 		private var btn: Boolean;
