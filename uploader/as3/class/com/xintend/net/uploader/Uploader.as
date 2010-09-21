@@ -24,6 +24,13 @@ package com.xintend.net.uploader {
 		
 		public function get isLocked(): Boolean { return _isLocked; }
 		
+		public function get isMulit():Boolean { return _isMulit; }
+		public function set isMulit(value:Boolean):void {
+			_isMulit = value;
+		}
+		
+		public function get length(): int { return pendingLength; }
+		
 		public static const FID_PREFIX: String = "FID";
 		
 		public function Uploader(serverURL:String,serverParameters:Object) {
@@ -97,7 +104,7 @@ package com.xintend.net.uploader {
 		 * @param	uploadDataFieldName
 		 * @return
 		 */
-		public function upload(serverURL: String = null, serverURLParameter: Object = null, uploadDataFieldName: String = "Filedata") : Boolean {
+		public function upload(serverURL: String = null, serverURLParameter: Object = null,hasResponse:Boolean=false, uploadDataFieldName: String = "Filedata") : Boolean {
 			var request: URLRequest;
 			var fileReference: FileReference;
 			var params: URLVariables;
@@ -112,10 +119,11 @@ package com.xintend.net.uploader {
 				}
 			}
 			request = new URLRequest(this.serverURL);
-			request.method = URLRequestMethod.POST;
+			request.method = URLRequestMethod.GET;
 			request.data = params;
 			try {
 				for each(fileReference in pendingFiles) {
+					addNetListeners(fileReference,hasResponse);
 					fileReference.upload(request, uploadDataFieldName);
 				}
 			}catch (e: Error) {
@@ -194,6 +202,7 @@ package com.xintend.net.uploader {
 		protected function eventHandler(e: Event): void {
 			var fileList: Array;
 			var event: UploaderEvent;
+			var data:* = null;
 			trace(e.type);
 			switch(e.type) {
 				case Event.SELECT:
@@ -208,7 +217,11 @@ package com.xintend.net.uploader {
 				case Event.COMPLETE:
 				case DataEvent.UPLOAD_COMPLETE_DATA:
 					removePendingFile(e.target as FileReference);
-					event = new UploaderEvent(e.type, [convertFileReferenceToObject(e.target)]);
+					if (e.type == DataEvent.UPLOAD_COMPLETE_DATA) data = e["data"];
+					event = new UploaderEvent(e.type, [convertFileReferenceToObject(e.target)],data);
+					if (pendingLength == 0) {
+						dispatchEvent(new UploaderEvent(UploaderEvent.LIST_COMPLETE));
+					}
 				break;
 				case ProgressEvent.PROGRESS:
 				case HTTPStatusEvent.HTTP_STATUS:
@@ -243,7 +256,6 @@ package com.xintend.net.uploader {
 					fileReference = fileReferenceList.fileList[i];
 					
 					saveFile(fileReference);
-					addNetListeners(fileReference);
 					pendingLength++;
 					fileList.push(convertFileReferenceToObject(fileReference));
 				}
@@ -251,21 +263,21 @@ package com.xintend.net.uploader {
 			}else if (file is FileReference) {
 				fileReference = file as FileReference;
 				saveFile(fileReference);
-				addNetListeners(fileReference);
 				fileList = [convertFileReferenceToObject(fileReference)];
 			}
 			return fileList;
 		}
 		
 		
-		protected function addNetListeners(dispatcher: IEventDispatcher): void {
-			dispatcher.addEventListener(Event.COMPLETE, eventHandler);
+		protected function addNetListeners(dispatcher: IEventDispatcher,hasResponse:Boolean=false): void {
+			trace("addNetListeners hasResponse:",hasResponse);
+			
 			dispatcher.addEventListener(HTTPStatusEvent.HTTP_STATUS, eventHandler);
 			dispatcher.addEventListener(IOErrorEvent.IO_ERROR, eventHandler);
 			dispatcher.addEventListener(Event.OPEN, eventHandler);
 			dispatcher.addEventListener(ProgressEvent.PROGRESS, eventHandler);
 			dispatcher.addEventListener(SecurityErrorEvent.SECURITY_ERROR, eventHandler);
-			dispatcher.addEventListener(DataEvent.UPLOAD_COMPLETE_DATA, eventHandler);
+			hasResponse ? dispatcher.addEventListener(DataEvent.UPLOAD_COMPLETE_DATA, eventHandler) : dispatcher.addEventListener(Event.COMPLETE, eventHandler);
         }
 		
 		
@@ -294,9 +306,6 @@ package com.xintend.net.uploader {
 			delete pendingFiles[key];
 			delete pendingIds[fileReference];
 			pendingLength--;
-			if (pendingLength == 0) {
-				dispatchEvent(new UploaderEvent(UploaderEvent.LIST_COMPLETE));
-			}
 		}
 
 		
@@ -306,7 +315,7 @@ package com.xintend.net.uploader {
 		
 		private var serverURL: String;
 		private var serverParameters: Object;
-		private var isMulit: Boolean;
+		private var _isMulit: Boolean;
 		private var _isLocked: Boolean = false;
 		private var fileReferenceList: FileReferenceList;
 		private var fileReference: FileReference;

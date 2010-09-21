@@ -13,14 +13,16 @@ package com.xintend.events {
 		//public static const CONTENT_READY: String = "contentReady";
 		
 		public var files: *;
+		public var data: *;
 		
-		public function UploaderEvent(type:String,files:* =null, bubbles:Boolean=false, cancelable:Boolean=false) { 
+		public function UploaderEvent(type:String,files:* =null,data:*=null, bubbles:Boolean=false, cancelable:Boolean=false) { 
 			super(type, bubbles, cancelable);
 			this.files = files;
+			this.data = data;
 		} 
 		
 		public override function clone():Event { 
-			return new UploaderEvent(type,files, bubbles, cancelable);
+			return new UploaderEvent(type,files,data,bubbles, cancelable);
 		} 
 		
 		public override function toString():String { 

@@ -26,7 +26,8 @@
 		<button type="button" onclick="browse();">browse</button>
 		<button type="button" onclick="browseMedia();">browseMedia</button>
 		<button type="button" onclick="upload();">upload</button>
-		<button type="button" onclick="upload2();">upload2</button>
+		<button type="button" onclick="upload2();">upload hasResponse</button>
+		<button type="button" onclick="upload3();">upload nonResponse</button>
 		<button type="button" onclick="getFile();">getFile</button>
 		<button type="button" onclick="removeFile();">removeFile</button>
 		<button type="button" onclick="cancel();">cancel</button>
@@ -112,6 +113,7 @@
 					uploader.on("uploadCompleteData",function(ev){
 						// 上传成功 并返回数据
 						test.echo("<p>"+'id: ' + ev.id,',type: ' + ev.type+", event:" + S.JSON.stringify(ev) +"</p>");
+						test.echo("<p>"+ encodeURI(ev.data)+"</p>");
 					});
 					uploader.on("listComplete",function(ev){
 						// 所有文件上传成功
@@ -169,6 +171,14 @@
 				uploader.upload();
 			}
 			function upload2(){
+				//TODO:
+				// 重定义上传路径
+				uploader.upload("http://127.0.0.1:8080/upload.php",{
+						username:"user",
+						password:"1297ew9jd23888s834u3j2u38"
+				},true);
+			}
+			function upload3(){
 				//TODO:
 				// 重定义上传路径
 				uploader.upload("http://127.0.0.1:8080/upload.php",{
