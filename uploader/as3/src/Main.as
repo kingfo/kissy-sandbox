@@ -1,6 +1,5 @@
 ﻿package {
 	import com.adobe.serialization.json.JSON;
-	import com.xintend.events.UploaderEvent;
 	import com.xintend.net.uploader.Uploader;
 	import com.xintend.trine.ajbridge.AJBridge;
 	import flash.display.Sprite;
@@ -20,6 +19,10 @@
 	 */
 	public class Main extends Sprite {
 		
+		
+		public static const VERSION:String = "1.1.2"
+		
+		
 		public function Main(): void {
 			Security.allowDomain("*");
 			
@@ -30,13 +33,19 @@
 		private function init(e: Event = null): void {
 			var params:Object = stage.loaderInfo.parameters;
 			
+			
+			
 			stage.scaleMode = "noScale";
 			stage.align = "TL";
+			
+			
 			
 			removeEventListener(Event.ADDED_TO_STAGE, init);
 			// entry point
 			
 			// 1.获取外部配置
+			AJBridge.init(stage);
+			
 			defaultServerURL = params["ds"];
 			defaultServerParameters = params["dsp"];
 			defaultServerResponse = params["dsr"] != null ||  params["dsr"] ||  params["dsr"] == "true";
@@ -51,74 +60,92 @@
 				defaultServerParameters = JSON.decode(defaultServerParameters);
 			}
 			// 2.创建并配置上传实例
-			uploader = new Uploader(defaultServerURL, defaultServerParameters,defaultServerResponse);
+			uploader = new Uploader();
 			// 3.创建监听程序
-			uploader.addEventListener(UploaderEvent.LOCKED, eventHandler);
-			uploader.addEventListener(UploaderEvent.UNLOCKED, eventHandler);
-			uploader.addEventListener(UploaderEvent.LIST_COMPLETE, eventHandler);
-			uploader.addEventListener(UploaderEvent.CLEAR, eventHandler);
-			uploader.addEventListener(Event.COMPLETE, eventHandler);
-			uploader.addEventListener(HTTPStatusEvent.HTTP_STATUS, eventHandler);
-			uploader.addEventListener(IOErrorEvent.IO_ERROR, eventHandler);
-			uploader.addEventListener(Event.OPEN, eventHandler);
-			uploader.addEventListener(ProgressEvent.PROGRESS, eventHandler);
-			uploader.addEventListener(SecurityErrorEvent.SECURITY_ERROR, eventHandler);
-			uploader.addEventListener(DataEvent.UPLOAD_COMPLETE_DATA, eventHandler);
-			uploader.addEventListener(Event.SELECT, eventHandler);
-			uploader.addEventListener(Event.CANCEL, eventHandler);
-			uploader.addEventListener(ErrorEvent.ERROR, eventHandler);
-			
-			
+			uploader.addEventListener(Uploader.CONTENT_READY, eventHandler);
+			uploader.addEventListener(Uploader.UPLOAD_LOCK, eventHandler);
+			uploader.addEventListener(Uploader.UPLOAD_UNLOCK, eventHandler);
+			uploader.addEventListener(Uploader.FILE_SELECT, eventHandler);
+			uploader.addEventListener(Uploader.UPLOAD_CANCEL, eventHandler);
+			uploader.addEventListener(Uploader.UPLOAD_CLEAR, eventHandler);
+			uploader.addEventListener(Uploader.UPLOAD_START, eventHandler);
+			uploader.addEventListener(Uploader.UPLOAD_PROGRESS, eventHandler);
+			uploader.addEventListener(Uploader.UPLOAD_COMPLETE, eventHandler);
+			uploader.addEventListener(Uploader.UPLOAD_COMPLETE_DATA, eventHandler);
+			uploader.addEventListener(Uploader.UPLOAD_LIST_COMPLETE, eventHandler);
+			uploader.addEventListener(Uploader.UPLOAD_ERROR, eventHandler);
 			
 			
 			// 4.注册 AJBridge
 			var callbacks: Object = { 
-					browse: browse,
 					upload: uploader.upload,
+					uploadAll: uploader.uploadAll,
 					cancel: uploader.cancel,
 					getFile: uploader.getFile,
 					removeFile: uploader.removeFile,
 					lock: uploader.lock,
 					unlock: uploader.unlock,
-					clear: uploader.clear
+					clear: uploader.clear,
+					/*简单的多接口*/
+					multifile: uploader.setAllowMultipleFiles,
+					setAllowMultipleFiles: uploader.setAllowMultipleFiles,
+					filter: uploader.setFileFilters,
+					setFileFilters: uploader.setFileFilters,
+					/* 增加的接口 */
+					browse: browse,
+					setBtnMode: setBtnMode,
+					useHand: useHand,
+					getVersion:getVersion
 				};
 			
 			
-			AJBridge.init(stage);
+			
 			AJBridge.addCallbacks(callbacks);
 			AJBridge.ready();
+			
 			
 			
 			
 			if (hand || btn) {
 				hotspot = new Sprite();
 				hotspot.addEventListener(Event.RESIZE, hotspotResize);
-				hotspot.useHandCursor = hand;
+				
 				hotspot.buttonMode = btn;
-				hotspot.doubleClickEnabled = true;
 				
 				hotspotResize();
+				useHand(hand);
+				setBtnMode(btn);
 				
+				addChild(hotspot);
+			}
+			
+			
+			
+			uploader.init(defaultServerURL, defaultServerParameters, defaultServerResponse);
+		}
+		
+		private function useHand(value:Boolean):void{
+			hotspot.useHandCursor = value;
+		}
+		
+		private function setBtnMode(value:Boolean):void{
+			if (value) {
 				hotspot.addEventListener(MouseEvent.CLICK, mouseHandler);
-				hotspot.addEventListener(MouseEvent.DOUBLE_CLICK, mouseHandler);
 				hotspot.addEventListener(MouseEvent.MOUSE_OVER, mouseHandler);
 				hotspot.addEventListener(MouseEvent.MOUSE_DOWN, mouseHandler);
 				hotspot.addEventListener(MouseEvent.MOUSE_UP, mouseHandler);
 				hotspot.addEventListener(MouseEvent.MOUSE_OUT, mouseHandler);
-				
-				
-				addChild(hotspot);
+			}else {
+				hotspot.removeEventListener(MouseEvent.CLICK, mouseHandler);
+				hotspot.removeEventListener(MouseEvent.MOUSE_OVER, mouseHandler);
+				hotspot.removeEventListener(MouseEvent.MOUSE_DOWN, mouseHandler);
+				hotspot.removeEventListener(MouseEvent.MOUSE_UP, mouseHandler);
+				hotspot.removeEventListener(MouseEvent.MOUSE_OUT, mouseHandler);
 			}
-				
-			
-			
-			
-			
-			
-			
-			// 原本存在白名单验证
-			AJBridge.sendEvent({type:"contentReady"} );
-			
+		}
+		
+		private function getVersion():String{
+			return VERSION;
 		}
 		
 		/**
@@ -127,8 +154,10 @@
 		 * @param	fileFilters
 		 */
 		private function browse(mulit: Boolean = true, fileFilters: Array = null):Boolean{
-			argumentsMap["browse"] = [mulit, fileFilters];
-			return !uploader.isLocked;
+			if (uploader.isLocked) return false;
+			uploader.setFileFilters(fileFilters);
+			uploader.setAllowMultipleFiles(mulit);
+			return true;
  		}
 		
 		
@@ -139,14 +168,14 @@
 					//uploader.browse();
 				//break;
 			//}
+			//trace(e);
 			AJBridge.sendEvent(e);
 		}
 		
 		private function mouseHandler(e: MouseEvent): void {
 			switch(e.type) {
 				case MouseEvent.CLICK:
-				case MouseEvent.DOUBLE_CLICK:
-					uploader.browse.apply(uploader,argumentsMap["browse"]);
+					uploader.browse();
 				break;
 			}
 			
@@ -171,9 +200,7 @@
 		private var hotspot: Sprite;
 		private var hand: Boolean;
 		private var btn: Boolean;
-		private var argumentsMap: Object = {
-											browse: [true, null] 
-											};
+		
 	}
 	
 }

@@ -55,6 +55,7 @@
 			}
 			.filelist li a {
 				float:right;
+				margin:0 5px;
 			}
 
 			.filelist button {
@@ -108,17 +109,24 @@
 					E = S.Event,
 					trigger = S.get('#J_Trigger'),
 					container = S.get('#J_List'),
-					ul = D.get('ul', container);
+					ul = D.get('ul', container),
+					serverURL ="http://127.0.0.1:8080/upload.php",
+					serverParams = {
+							username:"user",
+							password:"1297ew9jd23888s834u3j2u38"
+						},
+					method = "POST",
+					hasResponse = true;
 
 
 				//加载事件
 
 				//选中文件后
-				uploader.on('select', function(ev){
-					var files = ev.files,
+				uploader.on('fileSelect', function(ev){
+					var files = ev.fileList,
 						len = files.length,
 						i = 0,
-						one = '<li data-fid="{fid}"><a href="#">删除</a> {name} ( {size} byte )</li>',
+						one = '<li data-id="{id}"><a href="#" class="upload">上传</a><a href="#" class="delete">删除</a> {name} ( {size} byte )</li>',
 						html = '';
 
 					if(D.hasClass(container, 'hidden')) {
@@ -149,10 +157,18 @@
 				//删除文件,上传文件
 				E.on(container, 'click', function(ev) {
 					var target = ev.target;
-					if(target.tagName.toLowerCase() == 'a') {
+					if(D.hasClass(target, 'upload')) {
+						ev.preventDefault();
+						//上传单个文件
+						uploader.upload(D.parent(target).getAttribute('data-id'),serverURL, method, serverParams,hasResponse);
+						ul.removeChild(target.parentNode);
+						if(D.children(ul).length == 0) {
+							D.addClass(container, 'hidden');
+						}
+					} else if(D.hasClass(target, 'delete')) {
 						ev.preventDefault();
 						//删除文件
-						alert("file removed:" + uploader.removeFile(D.parent(target).getAttribute('data-fid')));
+						uploader.removeFile(D.parent(target).getAttribute('data-id'));
 						ul.removeChild(target.parentNode);
 						if(D.children(ul).length == 0) {
 							D.addClass(container, 'hidden');
@@ -160,19 +176,19 @@
 					} else if(D.hasClass(target, 'clear')) {
 						//清除所有文件
 						while(target = D.children(ul)[0]) {
-							alert("file removed:" + uploader.removeFile(target.getAttribute('data-fid')));
+							//uploader.removeFile(target.getAttribute('data-id'));
 							ul.removeChild(target);
 						}
+						uploader.clear();
 						D.addClass(container, 'hidden');
 
 					} else if(D.hasClass(target, 'start')) {
 						//开始上传
-						uploader.upload("http://127.0.0.1/upload/upload.php", {
-							username:"user",
-							password:"1297ew9jd23888s834u3j2u38"
-						});
+						uploader.uploadAll(serverURL, method, serverParams,hasResponse);
 					}
 				});
+				
+				
 
 				uploader.init();
 

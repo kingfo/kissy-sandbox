@@ -25,15 +25,17 @@
 		<br/>
 		<button type="button" onclick="browse();">browse</button>
 		<button type="button" onclick="browseMedia();">browseMedia</button>
-		<button type="button" onclick="upload();">upload</button>
-		<button type="button" onclick="upload2();">upload hasResponse</button>
-		<button type="button" onclick="upload3();">upload nonResponse</button>
+		<button type="button" onclick="upload();">upload ALL</button>
+		<button type="button" onclick="upload2();">upload ALL hasResponse</button>
+		<button type="button" onclick="upload3();">upload ALL nonResponse</button>
 		<button type="button" onclick="getFile();">getFile</button>
 		<button type="button" onclick="removeFile();">removeFile</button>
 		<button type="button" onclick="cancel();">cancel</button>
 		<button type="button" onclick="lock();">lock</button>
 		<button type="button" onclick="unlock();">unlock</button>
 		<button type="button" onclick="clearAll();">clear it</button>
+		<button type="button" onclick="filter();">setFileFilters</button>
+		<button type="button" onclick="multifile();">setAllowMultipleFiles</button>
 		
 		
 		<script>
@@ -46,7 +48,7 @@
 					src:"uploader.swf",
 					params:{
 						bgcolor:"#FFCCCC",
-						wmode:"transparent",
+						wmode:"opaque",
 						scale:"showall"
 					},
 					attrs:{
@@ -85,36 +87,36 @@
 						// flash 完成代码初始化
 						test.echo("<p>"+'id: ' + ev.id,',type: ' + ev.type,"</p>");
 					});
-					uploader.on("select",function(ev){
+					uploader.on("fileSelect",function(ev){
 						// flash 选择了文件
-						test.echo("<p>"+'id: ' + ev.id,',type: ' + ev.type +", files:" + S.JSON.stringify(ev.files) + "</p>");
-						files=ev.files;
+						test.echo("<p>"+'id: ' + ev.id,',type: ' + ev.type +", fileList:" + S.JSON.stringify(ev.fileList) + "</p>");
+						files=ev.fileList;
 					});
-					uploader.on("cancel",function(ev){
+					uploader.on("uploadCancel",function(ev){
 						// flash 取消选择文件
-						test.echo("<p>"+'id: ' + ev.id,',type: ' + ev.type,"</p>");
+						test.echo("<p>"+'id: ' + ev.id,',type: ' + ev.type+", event:" + S.JSON.stringify(ev) +"</p>");
 					});
-					uploader.on("locked",function(ev){
+					uploader.on("uploadLock",function(ev){
 						// 上传组件已上锁
 						test.echo("<p>"+'id: ' + ev.id,',type: ' + ev.type,"</p>");
 					});
-					uploader.on("unlocked",function(ev){
+					uploader.on("uploadUnlock",function(ev){
 						// 上传组件已解锁
 						test.echo("<p>"+'id: ' + ev.id,',type: ' + ev.type,"</p>");
 					});
-					uploader.on("clear",function(ev){
+					uploader.on("uploadClear",function(ev){
 						// 清空
 						test.echo("<p>"+'id: ' + ev.id,',type: ' + ev.type,"</p>");
 					});
-					uploader.on("open",function(ev){
+					uploader.on("uploadStart",function(ev){
 						// 上传开始
 						test.echo("<p>"+'id: ' + ev.id,',type: ' + ev.type,"</p>");
 					});
-					uploader.on("progress",function(ev){
+					uploader.on("uploadProgress",function(ev){
 						// 上传进行中
 						test.echo("<p>"+'id: ' + ev.id,',type: ' + ev.type+", event:" + S.JSON.stringify(ev) +"</p>");
 					});
-					uploader.on("complete",function(ev){
+					uploader.on("uploadComplete",function(ev){
 						// 上传完成
 						test.echo("<p>"+'id: ' + ev.id,',type: ' + ev.type,"</p>");
 					}); 
@@ -123,24 +125,15 @@
 						test.echo("<p>"+'id: ' + ev.id,',type: ' + ev.type+", event:" + S.JSON.stringify(ev) +"</p>");
 						test.echo("<p>"+ encodeURI(ev.data)+"</p>");
 					});
-					uploader.on("listComplete",function(ev){
+					uploader.on("uploadError",function(ev){
 						// 所有文件上传成功
 						test.echo("<p>"+'id: ' + ev.id,',type: ' + ev.type,"</p>");
 					});
-					uploader.on("httpStatus",function(ev){
-						// http状态
+					uploader.on("uploadError",function(ev){
+						// 其他上传组件可能产生的错误
 						test.echo("<p>"+'id: ' + ev.id,',type: ' + ev.type+", event:" + S.JSON.stringify(ev) +"</p>");
 					});
-					uploader.on("ioError",function(ev){
-						//  ic 错误
-						test.echo("<p>"+'id: ' + ev.id,',type: ' + ev.type+", event:" + S.JSON.stringify(ev) +"</p>");
-					});
-					uploader.on("securityError",function(ev){
-						// 安全错误
-						// 可能没有 部属   crossdomain.xml
-						// see http://www.adobe.com/devnet/articles/crossdomain_policy_file_spec.html
-						test.echo("<p>"+'id: ' + ev.id,',type: ' + ev.type+", event:" + S.JSON.stringify(ev) +"</p>");
-					});
+					
 					// 3.添加鼠标事件 监听
 					uploader.on("mouseOver",function(ev){
 						test.echo("<p>"+'id: ' + ev.id,',type: ' + ev.type /*+ ", event:" + S.JSON.stringify(ev)*/ +"</p>");
@@ -176,34 +169,39 @@
 			function upload(){
 				//TODO: 
 				// 在初始化的 swf 参数中已定义好 服务器 url 和 服务器 url 参数
-				uploader.upload();
+				
+				T.echo("<p>"+'upload by config: ' + uploader.uploadAll() + "</p>");
 			}
 			function upload2(){
 				//TODO:
 				// 重定义上传路径
-				uploader.upload("http://127.0.0.1:8080/upload.php",{
+				T.echo("<p>"+'upload hasResponse: ' + 
+				uploader.uploadAll("http://127.0.0.1:8080/upload.php","POST",{
 						username:"user",
 						password:"1297ew9jd23888s834u3j2u38"
-				},true);
+				},true)
+				+ "</p>");
 			}
 			function upload3(){
 				//TODO:
 				// 重定义上传路径
-				uploader.upload("http://127.0.0.1:8080/upload.php",{
+				T.echo("<p>"+'upload nonResponse: ' + 
+				uploader.uploadAll("http://127.0.0.1:8080/upload.php","POST",{
 						username:"user",
 						password:"1297ew9jd23888s834u3j2u38"
-				},false);
+				},false)
+				+ "</p>");
 			}
 			function cancel(){
-				uploader.cancel(files[0].fid);
+				uploader.cancel(files[0].id);
 			}
 			function getFile(){
 				//TODO:
-				T.echo("<p>"+'getFile: ' + uploader.getFile(files[0].fid) + "</p>");
+				T.echo("<p>"+'getFile: ' + uploader.getFile(files[0].id) + "</p>");
 			}
 			function removeFile(){
 				//TODO:
-				uploader.removeFile(files[0].fid);
+				T.echo("<p>"+'getFile: ' + uploader.removeFile(files[0].id) + "</p>");
 			}
 			function lock(){
 				uploader.lock();
@@ -213,6 +211,14 @@
 			}
 			function clearAll(){
 				uploader.clear();
+			}
+			
+			function filter(){
+				uploader.filter([{desc:"JPG,JPEG",ext:"*.jpg;*.jpeg"},{desc:"TEXT",ext:"*.txt"}]);
+			}
+			
+			function multifile(){
+				uploader.multifile(confirm("允许多文件访问？"));
 			}
 				
 		</script>

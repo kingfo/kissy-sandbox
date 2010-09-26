@@ -1,5 +1,5 @@
 package com.xintend.net.uploader {
-	import com.xintend.events.UploaderEvent;
+	import com.xintend.events.RichEvent;
 	import flash.events.DataEvent;
 	import flash.events.ErrorEvent;
 	import flash.events.Event;
@@ -22,55 +22,94 @@ package com.xintend.net.uploader {
 	 */
 	public class Uploader extends EventDispatcher implements IUploader {
 		
+		public static const UPLOAD_LIST_COMPLETE: String = "uploadListComplete";
+		public static const UPLOAD_LOCK: String = "uploadLock";
+		public static const UPLOAD_UNLOCK: String = "uploadUnlock";
+		public static const UPLOAD_CLEAR: String = "uploadClear";
+		
+		/*兼容 YUI */
+		public static const CONTENT_READY: String = "contentReady";
+		public static const FILE_SELECT: String = "fileSelect";
+		public static const UPLOAD_START: String = "uploadStart";
+		public static const UPLOAD_PROGRESS: String = "uploadProgress";
+		public static const UPLOAD_CANCEL: String = "uploadCancel";
+		public static const UPLOAD_COMPLETE: String = "uploadComplete";
+		public static const UPLOAD_COMPLETE_DATA: String = "uploadCompleteData";
+		public static const UPLOAD_ERROR: String = "uploadError";
+		
+		
+		
+		
 		public function get isLocked(): Boolean { return _isLocked; }
 		
-		public function get isMulit():Boolean { return _isMulit; }
-		public function set isMulit(value:Boolean):void {
+		public function get isMulit(): Boolean { return _isMulit; }
+		/**
+		 * 指定是否支持多文件选择
+		 * @param	allowMultipleFiles			
+		 */
+		public function setAllowMultipleFiles(value:Boolean):void {
 			_isMulit = value;
+			trace("setAllowMultipleFiles:" + value );
+		}
+		/**
+		 * 配置文件过滤器
+		 * @param	fileFilters					制定文件的类型
+		 */
+		public function setFileFilters (fileFilters: Array): void {
+			this.fileFilters = fileFilters;
 		}
 		
 		public function get length(): int { return pendingLength; }
 		
-		public static const FID_PREFIX: String = "FID";
+		public static const ID_PREFIX: String = "ID";
 		
-		public function Uploader(serverURL:String,serverParameters:Object,serverResponse:Boolean=false) {
+		public function Uploader() {
+			FILE_ID = new Date().getTime();
+		}
+		
+		
+		public function init(serverURL:String,serverParameters:Object,serverResponse:Boolean=false): void {
 			this.serverURL = serverURL;
 			this.serverParameters = serverParameters;
 			this.serverResponse = serverResponse;
-			
-			FILE_ID = new Date().getTime();
-			
-			//dispatchEvent(new UploaderEvent(UploaderEvent.CONTENT_READY));
+			dispatchEvent(new RichEvent(CONTENT_READY));
 		}
+		
 		/**
 		 * 显示一个文件浏览对话框，让用户选择要上载的文件。 该对话框对于用户的操作系统来说是本机的。
 		 * @param	mulit				启用多文件选择
 		 * @param	fileFilters			实例数组，用于过滤在对话框中显示的文件。如果省略此参数，则显示所有文件。
 		 * @return	如果参数有效并且打开了文件浏览对话框，则返回 true。 在以下情况下，browse 方法返回 false：未打开对话框；正在进行另一个浏览器会话；使用 typelist 参数，但未能在数组的任一元素中提供描述或扩展名字符串。 
 		 */
-		public function browse(mulit: Boolean = true, fileFilters: Array = null): Boolean {
+		public function browse(mulit: * = null, fileFilters: Array = null): Boolean {
 			var filters: Array;
 			var i: int;
-			var n: int = (fileFilters||[]).length;
+			var n: int;
 			var fileter: Object;
+			var ext:*;
+			var desc:*;
+			var mac:*;
+			
 			if (_isLocked) {
-				dispatchEvent(new UploaderEvent(UploaderEvent.LOCKED));
+				dispatchEvent(new RichEvent(UPLOAD_LOCK));
 				return false;
 			}
 			
-			isMulit = mulit;
+			_isMulit = mulit || isMulit;
+			
+			fileFilters = fileFilters || this.fileFilters;
 			
 			if (fileFilters) {
 				// 提取文件过滤配置
 				filters = [];
+				n = (fileFilters||[]).length;
 				for (i = 0; i < n;  i++) {
 					fileter = fileFilters[i];
-					if ("ext" in fileter) {
-						filters[i] = new FileFilter( "desc" in fileter ? fileter.desc : "ALL Files",
-													  fileter.ext,
-													  "mac" in fileter ? fileter.mac : null
-														);
-						
+					ext = fileter["ext"] || fileter["extension"];
+					mac = fileter["mac"] || fileter["macType"];
+					if (ext) {
+						desc = fileter["desc"] || fileter["description"] || "Files"
+						filters[i] = new FileFilter(desc,ext,mac);
 					}
 				}
 			}
@@ -89,7 +128,7 @@ package com.xintend.net.uploader {
 					return fileReference.browse(filters);
 				}
 			}catch (e: Error) {
-				dispatchEvent(new ErrorEvent(ErrorEvent.ERROR, false, true, e.message));
+				dispatchEvent(new RichEvent(UPLOAD_ERROR, false, true, e.message));
 			}
 			
 			
@@ -98,18 +137,23 @@ package com.xintend.net.uploader {
 			return true;
 		}
 		/**
-		 * 开始将用户选择的文件上载到远程服务器。
-		 * 播放器正式支持的上载或下载文件大小最大为 100 MB
-		 * @param	serverURL
-		 * @param	serverURLParameter
-		 * @param	uploadDataFieldName
+		 * 开始上传文件
+		 * @param	fileid						指上传文件名
+		 * @param	serverURL					指上传文件服务器地址。
+		 * @param	method						指上传文件服务器的方式  GET or POST
+		 * @param	serverURLParameter			至上传的URL参数
+		 * @param	hasResponse					服务端是否有应答
+		 * @param	uploadDataFieldName			POST操作数据属性。默认是Filedata不需要更改，请务必保持此指不为空或空字符串。
 		 * @return
 		 */
-		public function upload(serverURL: String = null, serverURLParameter: Object = null,hasResponse:*=null, uploadDataFieldName: String = "Filedata") : Boolean {
+		public function upload(fileID: String,
+								serverURL: String = null, 
+								method: String = "POST", 
+								serverURLParameter: Object = null,
+								hasResponse:*= null, 
+								uploadDataFieldName: String = "Filedata") : Boolean {
 			var request: URLRequest;
 			var fileReference: FileReference;
-			var params: URLVariables;
-			var key: String;
 			this.serverURL = serverURL || this.serverURL;
 			this.serverParameters = serverParameters || this.serverParameters;
 			if (hasResponse == null) {
@@ -118,35 +162,78 @@ package com.xintend.net.uploader {
 				this.serverResponse = hasResponse;
 			}
 			if (!this.serverURL) return false;
-			if (this.serverParameters) {
-				params = new URLVariables();
-				for (key in this.serverParameters) {
-					params[key] = this.serverParameters[key];
-				}
+			
+			request = getURLRequest(this.serverURL, method, serverURLParameter);
+			
+			try {
+				fileReference = pendingFiles[fileID];
+				if (!fileReference) dispatchEvent(new RichEvent(UPLOAD_ERROR, false, true, "no file"));
+				addNetListeners(fileReference,this.serverResponse);
+				fileReference.upload(request, uploadDataFieldName);
+			}catch (e: Error) {
+				dispatchEvent(new RichEvent(UPLOAD_ERROR, false, true, e.message));
 			}
-			request = new URLRequest(this.serverURL);
-			request.method = URLRequestMethod.POST;
-			request.data = params;
+			
+			return true;
+		}
+		
+		/**
+		 * 开始上传文件队列
+		 * @param	serverURL					指上传文件服务器地址。
+		 * @param	method						指上传文件服务器的方式  GET or POST
+		 * @param	serverURLParameter			至上传的URL参数
+		 * @param	hasResponse					服务端是否有应答
+		 * @param	uploadDataFieldName			POST操作数据属性。默认是Filedata不需要更改，请务必保持此指不为空或空字符串。
+		 * @return
+		 */
+		public function uploadAll(serverURL: String = null, 
+								method: String = "POST", 
+								serverURLParameter: Object = null,
+								hasResponse:*= null, 
+								uploadDataFieldName:String = "Filedata") : Boolean {
+			var request: URLRequest;
+			var fileReference: FileReference;
+			this.serverURL = serverURL || this.serverURL;
+			this.serverParameters = serverParameters || this.serverParameters;
+			if (hasResponse == null) {
+				hasResponse  = this.serverResponse;
+			}else {
+				this.serverResponse = hasResponse;
+			}
+			if (!this.serverURL) return false;
+			request = getURLRequest(this.serverURL, method, serverURLParameter);
 			try {
 				for each(fileReference in pendingFiles) {
 					addNetListeners(fileReference,this.serverResponse);
 					fileReference.upload(request, uploadDataFieldName);
 				}
 			}catch (e: Error) {
-				dispatchEvent(new ErrorEvent(ErrorEvent.ERROR, false, true, e.message));
+				dispatchEvent(new RichEvent(UPLOAD_ERROR, false, true, e.message));
 			}
 			
 			return true;
 		}
+		
+		
 		/**
 		 * 终止指定上传过程中的文件
 		 * @param	fid			
 		 * @return
 		 */
-		public function cancel(fid: String): Object {
-			var fileReference: FileReference = pendingFiles[fid];
-			if (fileReference) fileReference.cancel();
-			return convertFileReferenceToObject(pendingFiles[fid]);
+		public function cancel(fid: String = null): * {
+			var fileReference: FileReference;
+			var res:*;
+			if (fid == null) {
+				res = [];
+				for each(fileReference in pendingFiles) {
+					res.push(fileReference);
+					fileReference.cancel();
+				}
+			} else {
+				res = fileReference = pendingFiles[fid];
+				if (fileReference) fileReference.cancel();
+			}
+			return res;
 		}
 		/**
 		 * 通过 文件序列号获取文件
@@ -172,15 +259,17 @@ package com.xintend.net.uploader {
 		 * 锁定上传功能
 		 */
 		public function lock(): void {
+			if (_isLocked) return;
 			_isLocked = true;
-			dispatchEvent(new UploaderEvent(UploaderEvent.LOCKED));
+			dispatchEvent(new RichEvent(UPLOAD_LOCK));
 		}
 		/**
 		 * 解锁上传功能
 		 */
 		public function unlock(): void {
+			if (!_isLocked) return;
 			_isLocked = false;
-			dispatchEvent(new UploaderEvent(UploaderEvent.UNLOCKED));
+			dispatchEvent(new RichEvent(UPLOAD_UNLOCK));
 		}
 		/**
 		 * 清除所有文件
@@ -188,12 +277,12 @@ package com.xintend.net.uploader {
 		public function clear(): void {
 			trace("clear");
 			var fileReference: FileReference;
-			var isClear: Boolean;
+			cancel();
 			for each( fileReference in pendingFiles) {
 				removePendingFile(fileReference);
-				isClear = true;
 			}
-			if(isClear)dispatchEvent(new UploaderEvent(UploaderEvent.CLEAR));
+			pendingLength = 0;
+			dispatchEvent(new RichEvent(UPLOAD_CLEAR));
 		}
 		
 		
@@ -201,16 +290,30 @@ package com.xintend.net.uploader {
 			var o: Object;
 			if (!fileReference || !(fileReference is FileReference)) return null;
 			o = { };
-			o.creationDate = fileReference.creationDate;
-			o.creator = fileReference.creator;
-			o.modificationDate = fileReference.modificationDate;
+			o.cDate = fileReference.creationDate;
+			o.mDate = fileReference.modificationDate;
 			o.name = fileReference.name;
 			o.size = fileReference.size;
 			o.type = fileReference.type;
-			o.fid = pendingIds[fileReference] || null;
+			o.id = pendingIds[fileReference] || null;
 			return o;
 		}
 		
+		
+		protected function getURLRequest(url:String, method:String = "POST", variables:Object = null) : URLRequest {
+            var k:String = null;
+            var req:URLRequest = new URLRequest();
+            req.url= url;
+            req.method = method;
+			if (variables != null) {
+				 req.data = new URLVariables();
+				for (k in variables){
+					req.data[k] = variables[k];
+				}
+			}
+			//trace("getURLRequest:"+url + method);
+            return req;
+        }
 		
 		protected function configureListeners(dispatcher: IEventDispatcher): void {
 			dispatcher.addEventListener(Event.CANCEL, eventHandler);
@@ -218,63 +321,93 @@ package com.xintend.net.uploader {
         }
 		
 		
-		protected function eventHandler(e: Event): void {
-			var fileList: Array;
-			var event: UploaderEvent;
-			var data:* = null;
-			trace(e.type);
+		protected function netEventHandler(e: Event): void {
+			var event: RichEvent;
+			var fileID: String;
+			var file: Object;
+			file = convertFileReferenceToObject(e.target);
+			fileID = pendingFiles[e.target];
 			switch(e.type) {
-				case Event.SELECT:
-					fileList = addPendingFile(e.target);
-					_isLocked = false;
-					event = new UploaderEvent(e.type, fileList);
-				break;
-				case Event.CANCEL:
-					_isLocked = false;
-					event = new UploaderEvent(e.type, [convertFileReferenceToObject(e.target)]);
+				case ProgressEvent.PROGRESS:
+					event = new RichEvent(UPLOAD_PROGRESS, false, true, {bytesLoaded:e["bytesLoaded"],bytesTotal:["bytesTotal"]} );
 				break;
 				case Event.COMPLETE:
+					removePendingFile(e.target as FileReference);
+					event = new RichEvent(UPLOAD_COMPLETE );
+					checkLength();
+				break;
 				case DataEvent.UPLOAD_COMPLETE_DATA:
 					removePendingFile(e.target as FileReference);
-					if (e.type == DataEvent.UPLOAD_COMPLETE_DATA) data = e["data"];
-					event = new UploaderEvent(e.type, [convertFileReferenceToObject(e.target)],data);
-					if (pendingLength == 0) {
-						dispatchEvent(new UploaderEvent(UploaderEvent.LIST_COMPLETE));
-					}
+					event = new RichEvent(UPLOAD_COMPLETE_DATA, false, true,  {data:e["data"]});
+					checkLength();
 				break;
-				case ProgressEvent.PROGRESS:
-				case HTTPStatusEvent.HTTP_STATUS:
-				case IOErrorEvent.IO_ERROR:
-				case SecurityErrorEvent.SECURITY_ERROR:
-					dispatchEvent(e);
-					return;
+				case Event.OPEN:
+					event = new RichEvent(UPLOAD_START );
 				break;
-				default:
-					event = new UploaderEvent(e.type,[convertFileReferenceToObject(e.target)]);
-				
 			}
+			event.file = file;
 			dispatchEvent(event);
 		}
 		
+		protected function errorEventHandler(e: Event): void {
+			var event: RichEvent;
+			var fileID: String;
+			var file: Object;
+			trace(e.type);
+			file = convertFileReferenceToObject(e.target);
+			fileID = pendingFiles[e.target];
+			event = new RichEvent(UPLOAD_ERROR);
+			 switch(e.type) {
+				case HTTPStatusEvent.HTTP_STATUS:
+					event.status = e["status"];
+				break;
+				case IOErrorEvent.IO_ERROR:
+				case SecurityErrorEvent.SECURITY_ERROR:
+					event.message = e["text"];
+				break;
+			}
+			event.file = file;
+			event.originType = e.type;
+			dispatchEvent(event);
+		}
+		
+		protected function eventHandler(e: Event): void {
+			var event: RichEvent;
+			var fileList: Array;
+			switch(e.type) {
+				case Event.SELECT:
+					fileList = addPendingFile(e.target);
+					event = new RichEvent(FILE_SELECT,false,true, {fileList:fileList});
+				break;
+				case Event.CANCEL:
+					event = new RichEvent(UPLOAD_CANCEL);
+				break;
+			}
+			dispatchEvent(event);
+		}
+		protected function checkLength(): void {
+			if (pendingLength == 0) {
+				dispatchEvent(new RichEvent(UPLOAD_LIST_COMPLETE));
+			}
+		}
 		/**
 		 * 添加待处理文件至未决列表中。
 		 * @param	file
 		 * @return					是转化为纯粹 Object 的数组
 		 */
 		protected function addPendingFile(file: Object): Array {
-			var fileList: Array = [];
 			var i: int;
 			var n: int;
 			var fileReference: FileReference;
+			var fileID: String;
+			var fileList: Array = [];
 			var fileReferenceList: FileReferenceList;
 			if (file is FileReferenceList) {
 				fileReferenceList = file as FileReferenceList;
 				n = fileReferenceList.fileList.length;
 				for (i = 0; i < n; i++ ) {
-					// 添加网络/io监听
 					fileReference = fileReferenceList.fileList[i];
-					
-					saveFile(fileReference);
+					fileID = saveFile(fileReference);
 					pendingLength++;
 					fileList.push(convertFileReferenceToObject(fileReference));
 				}
@@ -290,36 +423,49 @@ package com.xintend.net.uploader {
 		
 		protected function addNetListeners(dispatcher: IEventDispatcher,hasResponse:Boolean=false): void {
 			trace("addNetListeners hasResponse:",hasResponse);
+			dispatcher.addEventListener(HTTPStatusEvent.HTTP_STATUS, errorEventHandler);
+			dispatcher.addEventListener(SecurityErrorEvent.SECURITY_ERROR, errorEventHandler);
+			dispatcher.addEventListener(IOErrorEvent.IO_ERROR, errorEventHandler);
 			
-			dispatcher.addEventListener(HTTPStatusEvent.HTTP_STATUS, eventHandler);
-			dispatcher.addEventListener(IOErrorEvent.IO_ERROR, eventHandler);
-			dispatcher.addEventListener(Event.OPEN, eventHandler);
-			dispatcher.addEventListener(ProgressEvent.PROGRESS, eventHandler);
-			dispatcher.addEventListener(SecurityErrorEvent.SECURITY_ERROR, eventHandler);
-			hasResponse ? dispatcher.addEventListener(DataEvent.UPLOAD_COMPLETE_DATA, eventHandler) : dispatcher.addEventListener(Event.COMPLETE, eventHandler);
+			dispatcher.addEventListener(Event.OPEN, netEventHandler);
+			dispatcher.addEventListener(ProgressEvent.PROGRESS, netEventHandler);
+			hasResponse ? dispatcher.addEventListener(DataEvent.UPLOAD_COMPLETE_DATA, netEventHandler) : dispatcher.addEventListener(Event.COMPLETE, netEventHandler);
         }
 		
-		
-		protected function saveFile(fileReference: FileReference): void {
+		protected function removeNetListeners(dispatcher: IEventDispatcher): void {
+			trace("removeNetListeners");
+			dispatcher.removeEventListener(HTTPStatusEvent.HTTP_STATUS, errorEventHandler);
+			dispatcher.removeEventListener(IOErrorEvent.IO_ERROR, errorEventHandler);
+			dispatcher.removeEventListener(SecurityErrorEvent.SECURITY_ERROR, errorEventHandler);
+			
+			dispatcher.removeEventListener(Event.OPEN, netEventHandler);
+			dispatcher.removeEventListener(ProgressEvent.PROGRESS, netEventHandler);
+			dispatcher.removeEventListener(DataEvent.UPLOAD_COMPLETE_DATA, netEventHandler);
+			dispatcher.removeEventListener(Event.COMPLETE, netEventHandler);
+        }
+		/**
+		 * 保存指定的文件引用
+		 * @param	fileReference
+		 * @return
+		 */
+		protected function saveFile(fileReference: FileReference): String {
 			var fid: String;
-			fid = FID_PREFIX + Number(FILE_ID++).toString(16).toUpperCase();
+			fid = ID_PREFIX + Number(FILE_ID++).toString(16).toUpperCase();
 			pendingFiles[fid] = fileReference;
 			pendingIds[fileReference] = fid;
+			return fid;
 		}
-		
+		/**
+		 * 从未决堆中移除指定的文件引用
+		 * @param	file
+		 */
 		protected function removePendingFile(file: FileReference): void {
 			if (!file) return;
-			var key: String = pendingIds[file];
+			var key: String = pendingIds[file]; // 从堆中取
 			if (!key) return;
-			var fileReference: FileReference = pendingFiles[key];
+			var fileReference: FileReference = pendingFiles[key]; // 堆中存在的 FR
 			if (!fileReference) return;
-			fileReference.removeEventListener(Event.COMPLETE, eventHandler);
-			fileReference.removeEventListener(HTTPStatusEvent.HTTP_STATUS, eventHandler);
-			fileReference.removeEventListener(IOErrorEvent.IO_ERROR, eventHandler);
-			fileReference.removeEventListener(Event.OPEN, eventHandler);
-			fileReference.removeEventListener(ProgressEvent.PROGRESS, eventHandler);
-			fileReference.removeEventListener(SecurityErrorEvent.SECURITY_ERROR, eventHandler);
-			fileReference.removeEventListener(DataEvent.UPLOAD_COMPLETE_DATA, eventHandler);
+			removeNetListeners(fileReference);
 			pendingFiles[key] = null;
 			pendingIds[fileReference] = null;
 			delete pendingFiles[key];
@@ -335,8 +481,9 @@ package com.xintend.net.uploader {
 		private var serverURL: String;
 		private var serverParameters: Object;
 		private var serverResponse: Boolean;
-		private var _isMulit: Boolean;
+		private var _isMulit: Boolean = true;
 		private var _isLocked: Boolean = false;
+		private var fileFilters: Array;
 		private var fileReferenceList: FileReferenceList;
 		private var fileReference: FileReference;
 		

@@ -46,13 +46,20 @@ AJBridge.add("uploader", function(A){
 
 	A.augment(Uploader,
 		[
+			"setFileFilters",
+			"filter",
+			"setAllowMultipleFiles",
+			"multifile",
 			"browse",
 			"upload",
+			"uploadAll",
 			"cancel",
 			"getFile",
 			"removeFile",
 			"lock",
 			"unlock",
+			"setBtnMode",
+			"useHand",
 			"clear"
 		]
 	);
@@ -61,9 +68,4 @@ AJBridge.add("uploader", function(A){
 	A.Uploader = Uploader;
 });
 
-/**
- * NOTES:
- * 2010/08/12	重构了代码，基于AJBridge 1.0.10
- * 2010/08/27	重构了代码，基于AJBridge 1.0.12
- */
 
