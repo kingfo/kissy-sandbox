@@ -1,0 +1,50 @@
+<!doctype html>
+<html>
+<head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8">
+    <title>Micro Template</title>
+</head>
+<body>
+    <div id="MicroTemplate"></div>
+    <script type="text/html" class="KISSY_Micro_Template">
+        <dl>
+            <dt>version</dt>
+            <dd><%=version%></dd>
+            <dt>createdate</dt>
+            <dd><%=createdate%></dd>
+        </dl>
+        <ul>
+            <% for (var i=0; i < users.length; i++) { %>
+                <li><a href="<%=users[i].url%>"><%=users[i].name%></a></li>
+            <% } %>
+        </ul>
+    </script>
+    <script src='http://a.tbcdn.cn/s/kissy/1.0.8/ks-core-min.js?t=20100603b.js'></script>
+    <script src='../src/kissy.micro.template.js'></script>
+    <script>
+        (function(S, undefined){
+            var data = {
+                version: '1.1.1',
+                createdate: '2010-08-07',
+                users: [
+                    {
+                        name: 'frank',
+                        url:  'http://s.taobao.com'
+                    },
+                    {
+                        name: 'wenhe',
+                        url:  'http://www.taobao.com'
+                    },
+                    {
+                        name: 'piglet',
+                        url:  'http://www.google.com'
+                    }
+                ]
+            };
+            S.Config.debug = true;
+            S.log(KISSY.MicroTemplate(S.get('.KISSY_Micro_Template').innerHTML).render(), 'info');
+            S.get('#MicroTemplate').innerHTML = KISSY.MicroTemplate(S.get('.KISSY_Micro_Template').innerHTML).render(data);
+        })(KISSY);
+    </script>
+</body>
+</html>
