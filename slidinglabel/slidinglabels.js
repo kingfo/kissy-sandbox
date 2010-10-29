@@ -5,16 +5,14 @@
  */
 
 KISSY.add('slidinglabels', function(S) {
-    var DOM = S.DOM,
-        Event = S.Event,
-        POSITION = 'position', RELATIVE = 'relative', ABSOLUTE = 'absolute',
+    var POSITION = 'position', RELATIVE = 'relative', ABSOLUTE = 'absolute',
         PX = 'px', X = 'x', Y = 'y',
 
         /**
          * 默认配置信息
          */
         defaultConfig = {
-            axis: 'x',          // 移动方向, 水平方向(x) or 垂直方向(y)
+            axis: X,            // 移动方向, 水平方向(x) or 垂直方向(y)
             position: [5, 5],   // px, 水平和垂直方向上, 相对于父元素的位置, x or [x, y], 不设置时, 取 0
             offset: 5,          // label 和 input 之间的距离
             zIndex: 99,         // zIndex
@@ -53,6 +51,8 @@ KISSY.add('slidinglabels', function(S) {
 
         self._init();
     }
+    
+    S.mix(SlidingLabels, S.Widget);
     
     S.SlidingLabels = SlidingLabels;
 
@@ -98,8 +98,8 @@ KISSY.add('slidinglabels', function(S) {
 
         /**
          * 绑定 focusin/focusout 事件
-         * @param area {Node}
-         * @param lab {Node}
+         * @param {Node} area
+         * @param {Node} lab
          * @private
          */
         _bindUI: function(area, lab) {
@@ -121,6 +121,8 @@ KISSY.add('slidinglabels', function(S) {
         },
 
         /**
+         * @param {Node} lab
+         * @parem {boolean} isDefault
          * @private
          */
         _anim: function(lab, isDefault) {
@@ -128,6 +130,8 @@ KISSY.add('slidinglabels', function(S) {
         },
 
         /**
+         * @param {Node} lab
+         * @parem {boolean} isDefault
          * @private
          */
         _css: function(lab, isDefault) {
@@ -136,9 +140,9 @@ KISSY.add('slidinglabels', function(S) {
 
         /**
          * 输入区域是否有值, 对应改变 label 所在位置
-         * @param fn {string} 'css' or 'animate'
-         * @param lab {Node}
-         * @param isDefault  {Boolean} 为 true 时, 表示没有值, 移入, 为 false, 表示有值, 移开
+         * @param {string} fn 'css' or 'animate'
+         * @param {Node} lab
+         * @param {boolean} isDefault 为 true 时, 表示没有值, 移入, 为 false, 表示有值, 移开
          * @private
          */
         _change: function(fn, lab, isDefault) {
@@ -151,5 +155,4 @@ KISSY.add('slidinglabels', function(S) {
             }
         }
     });
-
-}, { requires: ['core'] });
+}/*, { requires: ['core'] }*/);
