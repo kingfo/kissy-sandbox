@@ -1,107 +1,60 @@
 /**
- * dd support for kissy ,drag for dd
- * @author:yiminghe@gmail.com
+ * dd support for kissy, drag for dd
+ * @author: yiminghe@gmail.com
  */
-KISSY.add("dd-drag", function() {
-    var S = KISSY,
-        KE = S.Editor,
-        Event = S.Event,
-        UA = S.UA,
-        DOM = S.DOM,
-        Node = S.Node;
+KISSY.add('dd-draggable', function(S) {
 
-    var DDM = S.DD.DDM;
-
-    function normalElDom(el) {
-        return   el[0] || el;
-    }
-
-    function equals(e1, e2) {
-        //全部为空
-        if (!e1 && !e2)return true;
-        //一个为空，一个不为空
-        if (!e1 || !e2)return false;
-        e1 = normalElDom(e1);
-        e2 = normalElDom(e2);
-        return e1 === e2;
-    }
-
-    var unselectable =
-        UA.gecko ?
-            function(el) {
-                el = normalElDom(el);
-                el.style.MozUserSelect = 'none';
-            }
-            : UA.webkit ?
-            function(el) {
-                el = normalElDom(el);
-                el.style.KhtmlUserSelect = 'none';
-            }
-            :
-            function(el) {
-                el = normalElDom(el);
-                if (UA.ie || UA.opera) {
-                    var
-                        e,
-                        i = 0;
-
-                    el.unselectable = 'on';
-
-                    while (( e = el.all[ i++ ] )) {
-                        switch (e.tagName.toLowerCase()) {
-                            case 'iframe' :
-                            case 'textarea' :
-                            case 'input' :
-                            case 'select' :
-                                /* Ignore the above tags */
-                                break;
-                            default :
-                                e.unselectable = 'on';
-                        }
-                    }
-                }
-            };
-
+    var UA = S.UA;
 
     /*
      拖放纯功能类
      */
     function Draggable() {
-        var self = this;
-        Draggable.superclass.constructor.apply(self, arguments);
-        self._init();
+        Draggable.superclass.constructor.apply(this, arguments);
+        this._init();
     }
 
     Draggable.ATTRS = {
-        //拖放节点
-        node:{},
-        //handler 集合，注意暂时必须在 node 里面
-        handlers:{value:{}}
+        /**
+         * 拖放节点
+         */
+        node: { },
+
+        /**
+         * handler 集合，注意暂时必须在 node 里面
+         */
+        handlers:{ value: { } }
     };
 
     S.extend(Draggable, S.Base, {
-        _init:function() {
+
+        _init: function() {
             var self = this,
-                node = self.get("node"),
-                handlers = self.get("handlers");
-            //DDM.reg(node);
+                node = self.get('node'),
+                handlers = self.get('handlers');
+
             if (S.isEmptyObject(handlers)) {
                 handlers[node[0].id] = node;
             }
+
             for (var h in handlers) {
                 if (!handlers.hasOwnProperty(h)) continue;
-                var hl = handlers[h],ori = hl.css("cursor");
+                var hl = handlers[h],ori = hl.css('cursor');
                 if (!equals(hl, node)) {
-                    if (!ori || ori === "auto")
-                        hl.css("cursor", "move");
+                    if (!ori || ori === 'auto')
+                        hl.css('cursor', 'move');
+
                     //ie 不能被选择了
                     unselectable(hl);
                 }
             }
-            node.on("mousedown", self._handleMouseDown, self);
+
+            node.on('mousedown', self._handleMouseDown, self);
         },
-        _check:function(t) {
-            var handlers = this.get("handlers");
+
+        _check: function(t) {
+            var handlers = this.get('handlers');
+
             for (var h in handlers) {
                 if (!handlers.hasOwnProperty(h)) continue;
                 if (handlers[h].contains(t)
@@ -118,17 +71,17 @@ KISSY.add("dd-drag", function() {
          * 通知全局管理器开始作用
          * @param ev
          */
-        _handleMouseDown:function(ev) {
+        _handleMouseDown: function(ev) {
             var self = this,
-                t = new Node(ev.target);
+                t = new S.Node(ev.target);
             if (!self._check(t)) return;
             //chrome 阻止了 flash 点击？？
             if (!UA.webkit) {
                 //firefox 默认会拖动对象地址
                 ev.preventDefault();
             }
-            //
-            DDM._start(self);
+            
+            S.DD.DDM._start(self);
 
             var node = self.get("node"),
                 mx = ev.pageX,
@@ -146,7 +99,8 @@ KISSY.add("dd-drag", function() {
             self.set("diff", self._diff);
 
         },
-        _move:function(ev) {
+
+        _move: function(ev) {
             var self = this,
                 diff = self.get("diff"),
                 left = ev.pageX - diff.left,
@@ -157,10 +111,12 @@ KISSY.add("dd-drag", function() {
                 top:top
             });
         },
-        _end:function() {
+
+        _end: function() {
             this.fire("end");
         },
-        _start:function() {
+
+        _start: function() {
             this.fire("start");
         }
 
@@ -169,8 +125,50 @@ KISSY.add("dd-drag", function() {
     /*
      拖放实体，功能反应移动时，同时移动节点
      */
+    S.Draggable = Draggable;
 
 
-    S.DD.Draggable = Draggable;
+    function normalElDom(el) {
+        return el[0] || el;
+    }
+
+    function equals(e1, e2) {
+        if (!e1 && !e2) return true; // 全部为空
+        if (!e1 || !e2) return false; // 有一个为空
+        return normalElDom(e1) === normalElDom(e2);
+    }
+
+    var unselectable =
+        UA.gecko ?
+            function(el) {
+                el = normalElDom(el);
+                el.style.MozUserSelect = 'none';
+            }
+            : UA.webkit ?
+            function(el) {
+                el = normalElDom(el);
+                el.style.KhtmlUserSelect = 'none';
+            }
+            :
+            function(el) {
+                el = normalElDom(el);
+                if (UA.ie || UA.opera) {
+                    var e, i = 0;
+                    el.unselectable = 'on';
+
+                    while (( e = el.all[ i++ ] )) {
+                        switch (e.tagName.toLowerCase()) {
+                            case 'iframe' :
+                            case 'textarea' :
+                            case 'input' :
+                            case 'select' :
+                                /* Ignore the above tags */
+                                break;
+                            default :
+                                e.unselectable = 'on';
+                        }
+                    }
+                }
+            };
 
 });

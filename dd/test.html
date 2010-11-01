@@ -36,22 +36,27 @@
     </div>
 
 </div>
+
 <script src="http://a.tbcdn.cn/s/kissy/1.1.5/kissy-min.js?t=201010271100"></script>
 <script src="manager.js"></script>
 <script src="drag.js"></script>
 <script>
     KISSY.ready(function(S) {
+
         var Draggable = S.DD.Draggable,
                 close = S.one("#close"),
                 node = S.one("#dialog");
+
         var h = new Draggable({
-            node:node,
-            handlers:[S.one("#header")]
+            node: node,
+            handlers: [S.one("#header")]
         });
+
         close.on("click", function(ev) {
             node.hide();
             ev.preventDefault();
         });
+
         h.on("move", function(ev) {
             if (ev.left < 0) return;
             node.offset(ev);
