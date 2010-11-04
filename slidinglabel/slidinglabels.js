@@ -4,21 +4,10 @@
  * @see http://danyi.codetea.co.uk/2010/03/16/sliding-label/
  */
 
-KISSY.add('slidinglabels', function(S) {
+KISSY.add('slidinglabels', function(S, undefined) {
     var POSITION = 'position', RELATIVE = 'relative', ABSOLUTE = 'absolute',
-        PX = 'px', X = 'x', Y = 'y',
-
-        /**
-         * 默认配置信息
-         */
-        defaultConfig = {
-            axis: X,            // 移动方向, 水平方向(x) or 垂直方向(y)
-            position: [5, 5],   // px, 水平和垂直方向上, 相对于父元素的位置, x or [x, y], 不设置时, 取 0
-            offset: 5,          // label 和 input 之间的距离
-            zIndex: 99,         // zIndex
-            duration: 0.2       // 动画速度
-        };
-
+        PX = 'px', X = 'x', Y = 'y', BLURSTYLE = 'blurStyle', FOCUSSTYLE = 'focusStyle',
+        defaultPosition = [5, 5];
 
     /**
      * @class SlidingLabels
@@ -32,7 +21,6 @@ KISSY.add('slidinglabels', function(S) {
         if (!(self instanceof SlidingLabels)) {
             return new SlidingLabels(container, config);
         }
-
         /**
          * 容器元素
          * @type {Element}
@@ -40,29 +28,62 @@ KISSY.add('slidinglabels', function(S) {
         self.container = container = S.one(container);
         if (!container) return;
 
-        /**
-         * 配置选项
-         * @type {Object}
-         */
-        self.config = config = S.merge(defaultConfig, config);
-        config.position = S.makeArray(config.position);
-        config.position[0] = config.position[0] || 0;
-        config.position[1] = config.position[1] || 0;
+        SlidingLabels.superclass.constructor.call(self, container, config);
 
         self._init();
     }
-    
-    S.mix(SlidingLabels, S.Widget);
+
+    SlidingLabels.ATTRS = {
+        axis: {             // 移动方向, 水平方向(x) or 垂直方向(y)
+            value:  X
+        },
+        position: {         // px, 水平和垂直方向上, 相对于父元素的位置, x or [x, y], 不设置时, 取 0
+            value: defaultPosition,
+            setter: function(v) {
+                return S.mix(this.get(POSITION), S.makeArray(v));
+            },
+            getter: function(v) {
+                return S.mix(defaultPosition, S.makeArray(v));
+            }
+        },
+        offset: {           // label 和 input 之间的距离
+            value: 5
+        },
+        zIndex: {           // zIndex
+            value: 99
+        },
+        duration: {         // 动画速度
+            value: 0.2
+        },
+        focusStyle: {       // 输入框获取焦点时, label 的样式
+            value: undefined,
+            getter: function(v) {
+                return v || '';
+            }
+        },
+        blurStyle: {        // 输入框失去焦点时, label 的样式
+            value: undefined,
+            getter: function(v) {
+                return v || '';
+            }
+        }
+    };
+
+    S.extend(SlidingLabels, S.Widget, undefined, {
+        'autoRender': S.Widget.autoRender
+    });
     
     S.SlidingLabels = SlidingLabels;
 
-    S.augment(SlidingLabels, S.EventTarget, {
+    S.augment(SlidingLabels, {
         /**
          * 初始化 label 状态及绑定 focus/blur 事件
          * @private
          */
         _init: function() {
-            var self = this, config = self.config;
+            var self = this,
+                blurStyle = self.get(BLURSTYLE),
+                position = self.get(POSITION);
 
             self.container.all('label').each(function(elem) {
                 var lab = new S.Node(elem),
@@ -74,16 +95,17 @@ KISSY.add('slidinglabels', function(S) {
                 // label 的父元素设置为 relative
                 prt = lab.parent();
                 if (prt.css(POSITION) !== RELATIVE) {
-                    prt.css({ 'position': RELATIVE });
+                    prt.css({ position: RELATIVE });
                 }
 
                 lab.css({
-                    'position' : ABSOLUTE,
+                    position : ABSOLUTE,
                     // 默认把 label 移入输入框
-                    'left' : config.position[0] + PX,
-                    'top' : config.position[1] + PX,
-                    'z-index' : config.zIndex
+                    left : position[0] + PX,
+                    top : position[1] + PX,
+                    zIndex : self.get('zIndex')
                 });
+                blurStyle && lab.css(blurStyle);
 
                 // 输入框有值时, 把 label 移出输入框
                 len = S.trim(area.val()).length;
@@ -146,13 +168,23 @@ KISSY.add('slidinglabels', function(S) {
          * @private
          */
         _change: function(fn, lab, isDefault) {
-            var self = this, config = self.config;
-
-            if (config.axis == X) {
-                lab[fn]({ 'left': (isDefault ? config.position[0] : -lab.width() - config.offset) + PX }, config.duration);
-            } else if (config.axis == Y) {
-                lab[fn]({ 'top': (isDefault ? config.position[1] : -lab.height() - config.offset) + PX }, config.duration);
-            }
+            var self = this,
+                //axis = self.get('axis'),
+                position = self.get(POSITION),
+                blurStyle = self.get(BLURSTYLE),
+                focusStyle = self.get(FOCUSSTYLE),
+                duration = self.get('duration'),
+                offset = self.get('offset');
+            //if (axis == X) {
+                lab[fn](S.merge({
+                    left: (isDefault ? position[0] : -lab.width() - offset) + PX
+                }, isDefault ? blurStyle : focusStyle), duration);
+            /*}
+            else if (axis == Y) {
+                lab[fn](S.merge({
+                    top: (isDefault ? position[1] : -lab.height() - offset) + PX
+                }, isDefault ? blurStyle : focusStyle), duration);
+            }*/
         }
     });
-}/*, { requires: ['core'] }*/);
+}, { requires: ['core'] });

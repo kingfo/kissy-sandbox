@@ -19,9 +19,10 @@ input[type="submit"]:hover,
 input[type="submit"]:focus { border-color:#333;background:#ddd; }
 input[type="submit"]:active { margin-top:1px; }
 </style>
-<script src="http://a.tbcdn.cn/s/kissy/1.1.5/kissy-min.js"></script>
+<script src="http://github.com/kissyteam/kissy/raw/master/build/kissy-min.js"></script>
 <script src="widget.js"></script>
 <script src="slidinglabels.js"></script>
+<!--<script src="mod-autorender.js"></script>-->
 </head>
 <body>
 <div class="demo">
@@ -47,7 +48,7 @@ input[type="submit"]:active { margin-top:1px; }
 
         <div id="comment-wrap" class="slider">
             <label for="comment">Comment</label>
-            <textarea cols="53" rows="10" id="comment"></textarea>
+            <textarea cols="53" rows="10" id="comment">aaasssss</textarea>
         </div>
         <!--/#comment-wrap-->
 
@@ -57,7 +58,7 @@ input[type="submit"]:active { margin-top:1px; }
 
 <div class="demo">
     <h2>垂直方向上</h2>
-    <form action="" method="post" id="info1" class="KS_Widget" data-widget-type="SlidingLabels" data-widget-config="{ 'axis': 'y' }" >
+    <form action="" method="post" id="info1" class="KS_Widget" data-widget-type="SlidingLabels" data-widget-config="{ 'blurStyle': {'font-size': '12px'}, 'focusStyle': {'font-size': '14px'}}" >
         <div id="name-wrap1" class="slider">
             <label for="name1">Name</label>
             <input type="text" id="name1" name="name"  value="aaa" />
@@ -72,7 +73,14 @@ input[type="submit"]:active { margin-top:1px; }
 
 <script>
 KISSY.ready(function(S) {
-    new S.SlidingLabels('#info');
+    new S.SlidingLabels('#info', {
+        blurStyle: {
+            color: '#aaa'
+        },
+        focusStyle: {
+            color: '#000'
+        }
+    });
     
     S.SlidingLabels.autoRender();
     

@@ -1,15 +1,19 @@
 /**
  * 组件基类
- * @author  qiaohua
  */
 
-KISSY.add('widget', function(S) {
+KISSY.add('widget', function(S, undefined) {
     var CLS_WIDGET = 'KS_Widget';
 
-    function Widget() {
+    function Widget(container, config) {
+        var self = this;
 
+        self.container = container;
+
+        Widget.superclass.constructor.call(self, config);
     }
-
+    S.extend(Widget, S.Base);
+    S.Widget = Widget;
     /**
      * 自动渲染 container 元素内的所有 Widget
      * 默认钩子：<div class="KS_Widget" data-widget-type="SomeType" data-widget-config="{...}">
@@ -37,8 +41,8 @@ KISSY.add('widget', function(S) {
         });
     };
 
-    //S.augment(Widget, S.EventTarget);
-
-    S.Widget = Widget;
+    S.augment(Widget, {
+        
+    });
 
 }, { requires: ['core'] } );
