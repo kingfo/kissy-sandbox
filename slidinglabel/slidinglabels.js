@@ -6,7 +6,7 @@
 
 KISSY.add('slidinglabels', function(S, undefined) {
     var POSITION = 'position', RELATIVE = 'relative', ABSOLUTE = 'absolute',
-        PX = 'px', X = 'x', Y = 'y', BLURSTYLE = 'blurStyle', FOCUSSTYLE = 'focusStyle',
+        PX = 'px', X = 'x', Y = 'y', BLUR_STYLE = 'blurStyle', FOCUS_STYLE = 'focusStyle',
         defaultPosition = [5, 5];
 
     /**
@@ -28,7 +28,7 @@ KISSY.add('slidinglabels', function(S, undefined) {
         self.container = container = S.one(container);
         if (!container) return;
 
-        SlidingLabels.superclass.constructor.call(self, container, config);
+        SlidingLabels.superclass.constructor.call(self, config);
 
         self._init();
     }
@@ -69,9 +69,7 @@ KISSY.add('slidinglabels', function(S, undefined) {
         }
     };
 
-    S.extend(SlidingLabels, S.Widget, undefined, {
-        'autoRender': S.Widget.autoRender
-    });
+    S.extend(SlidingLabels, S.Base);
     
     S.SlidingLabels = SlidingLabels;
 
@@ -82,7 +80,7 @@ KISSY.add('slidinglabels', function(S, undefined) {
          */
         _init: function() {
             var self = this,
-                blurStyle = self.get(BLURSTYLE),
+                blurStyle = self.get(BLUR_STYLE),
                 position = self.get(POSITION);
 
             self.container.all('label').each(function(elem) {
@@ -171,8 +169,8 @@ KISSY.add('slidinglabels', function(S, undefined) {
             var self = this,
                 //axis = self.get('axis'),
                 position = self.get(POSITION),
-                blurStyle = self.get(BLURSTYLE),
-                focusStyle = self.get(FOCUSSTYLE),
+                blurStyle = self.get(BLUR_STYLE),
+                focusStyle = self.get(FOCUS_STYLE),
                 duration = self.get('duration'),
                 offset = self.get('offset');
             //if (axis == X) {
