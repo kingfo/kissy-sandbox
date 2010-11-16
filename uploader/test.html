@@ -66,6 +66,16 @@
 				uploader = new Uploader(id,config);
 			
 				function test_create(test){
+					
+					uploader.on("failed",function(ev){
+						// swf未安装 或版本过低
+						test.fail();
+					});
+					
+					uploader.on("error",function(ev){
+						// 其他错误
+						test.fail();
+					});
 					// 1.添加常规 AJBridge 监听
 					// see  http://kissyteam.github.com/kissy-ajbridge/docs/ajbridge/index.html#events 
 					uploader.on("init",function(ev){
@@ -81,6 +91,7 @@
 						test.echo("<p>"+'id: ' + ev.id,',type: ' + ev.type,"</p>");
 						S.log(uploader);
 					});
+					
 					// 2.添加常规 内容 监听
 					
 					uploader.on("contentReady",function(ev){
@@ -92,7 +103,7 @@
 						test.echo("<p>"+'id: ' + ev.id,',type: ' + ev.type +", fileList:" + S.JSON.stringify(ev.fileList) + "</p>");
 						files=ev.fileList;
 					});
-					uploader.on("uploadCancel",function(ev){
+					uploader.on("browseCancel",function(ev){
 						// flash 取消选择文件
 						test.echo("<p>"+'id: ' + ev.id,',type: ' + ev.type+", event:" + S.JSON.stringify(ev) +"</p>");
 					});
@@ -125,12 +136,13 @@
 						test.echo("<p>"+'id: ' + ev.id,',type: ' + ev.type+", event:" + S.JSON.stringify(ev) +"</p>");
 						test.echo("<p>"+ encodeURI(ev.data)+"</p>");
 					});
-					uploader.on("uploadError",function(ev){
+					uploader.on("listComplete",function(ev){
 						// 所有文件上传成功
 						test.echo("<p>"+'id: ' + ev.id,',type: ' + ev.type,"</p>");
 					});
 					uploader.on("uploadError",function(ev){
 						// 其他上传组件可能产生的错误
+						test.fail();
 						test.echo("<p>"+'id: ' + ev.id,',type: ' + ev.type+", event:" + S.JSON.stringify(ev) +"</p>");
 					});
 					

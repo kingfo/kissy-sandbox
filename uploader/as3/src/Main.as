@@ -66,7 +66,7 @@
 			uploader.addEventListener(Uploader.UPLOAD_LOCK, eventHandler);
 			uploader.addEventListener(Uploader.UPLOAD_UNLOCK, eventHandler);
 			uploader.addEventListener(Uploader.FILE_SELECT, eventHandler);
-			uploader.addEventListener(Uploader.UPLOAD_CANCEL, eventHandler);
+			uploader.addEventListener(Uploader.BROWSE_CANCEL, eventHandler);
 			uploader.addEventListener(Uploader.UPLOAD_CLEAR, eventHandler);
 			uploader.addEventListener(Uploader.UPLOAD_START, eventHandler);
 			uploader.addEventListener(Uploader.UPLOAD_PROGRESS, eventHandler);

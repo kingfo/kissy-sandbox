@@ -32,7 +32,7 @@ package com.xintend.net.uploader {
 		public static const FILE_SELECT: String = "fileSelect";
 		public static const UPLOAD_START: String = "uploadStart";
 		public static const UPLOAD_PROGRESS: String = "uploadProgress";
-		public static const UPLOAD_CANCEL: String = "uploadCancel";
+		public static const BROWSE_CANCEL: String = "browseCancel";
 		public static const UPLOAD_COMPLETE: String = "uploadComplete";
 		public static const UPLOAD_COMPLETE_DATA: String = "uploadCompleteData";
 		public static const UPLOAD_ERROR: String = "uploadError";
@@ -380,7 +380,7 @@ package com.xintend.net.uploader {
 					event = new RichEvent(FILE_SELECT,false,true, {fileList:fileList});
 				break;
 				case Event.CANCEL:
-					event = new RichEvent(UPLOAD_CANCEL);
+					event = new RichEvent(BROWSE_CANCEL);
 				break;
 			}
 			dispatchEvent(event);

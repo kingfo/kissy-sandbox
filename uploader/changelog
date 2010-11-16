@@ -1,3 +1,5 @@
+2010-10-23  从 Sandbox 转移至 KISSY-AJBridge中
+			将 uploadCannel 更名为 名称更确切的 browseCancel 。  
 2010-09-26	考虑到 KISSY 与 YUI 过渡 因此 uploader 将 API 都与 YUI 类同
 			原 upload 是 所有文件上传 转为 单个文件上传，因此原 upload 方法相应的更名为  uploadAll。
 			增加了 setAllowMultipleFiles 动态配置 是否使用多文件选择,当然这个方法太过难记忆，您也可以使用 multifile 来达到同样的目的。
